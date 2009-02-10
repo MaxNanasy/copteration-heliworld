@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+# This script simulates the project running on the mote using TOSSIM
 from TOSSIM import *
 import sys
 
