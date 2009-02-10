@@ -1,0 +1,1 @@
+To get the source for tinyos-2.x, run "cvs -z3 -d:pserver:anonymous@tinyos.cvs.sourceforge.net:/cvsroot/tinyos co -P tinyos-2.x".
