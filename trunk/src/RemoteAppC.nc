@@ -2,6 +2,7 @@ configuration RemoteAppC {
 }
 
 implementation {
+
   components RemoteC, MainC;
   components HplCC2420PinsC as PinsC;
   components SwitchC;
@@ -14,4 +15,5 @@ implementation {
   RemoteC.Receive -> AMReceiverC;
   RemoteC.AMControl -> ActiveMessageC;
   RemoteC.MilliTimer -> TimerMilliC;
+
 }
