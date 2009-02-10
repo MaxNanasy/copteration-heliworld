@@ -1,14 +1,8 @@
 module RemoteC {
-  provides {
-    interface Init;
-  }
   uses {
     interface Boot;
-    interface GeneralIO as Switch;
     interface AMSend;
     interface SplitControl as AMControl;
-    interface Timer<TMilli> as MilliTimer;
-    interface Init as IMUInit;
   }
 }
 
@@ -22,14 +16,12 @@ implementation {
   event void Boot.booted ()
   {
     call AMControl.start ();
-    call MilliTimer.startPeriodic (1000);
-  }
-
-  command error_t Init.init ()
-  {
-    call AMControl.start ();
-    call MilliTimer.startPeriodic (1000);
-    return SUCCESS;
+    if (call AMSend.send (1, remoteMessage, 0) == SUCCESS) {
+      dbg ("Remote", "Autopilot toggled (hopefully)\n");
+    }
+    else {
+      dbg ("Remote", "Message failure\n");
+    }
   }
 
   event void AMSend.sendDone (message_t *bufPtr, error_t error) {
@@ -44,17 +36,6 @@ implementation {
   }
 
   event void AMControl.stopDone (error_t err) {
-  }
-
-  event void MilliTimer.fired () {
-    if (call Switch.get ()) {
-      if (call AMSend.send (1, remoteMessage, 0) == SUCCESS) {
-	dbg ("Remote", "Autopilot toggled (hopefully)\n");
-      }
-      else {
-	dbg ("Remote", "Message failure\n");
-      }
-    }
   }
 
 }
