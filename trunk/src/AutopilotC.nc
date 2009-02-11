@@ -46,8 +46,7 @@ implementation {
     }
   }
 
-  event void AMControl.stopDone (error_t err) {
-  }
+  event void AMControl.stopDone (error_t err) { }
 
   event void MilliTimer.fired () {
     Vector3 a = call PID.updateError (1, (Vector3) {2, -2, 0});

@@ -7,6 +7,7 @@ implementation {
 
   components SimC, MainC;
   components RemoteC, AutopilotC;
+  components SwitchC;
   components EnvironmentC;
   components new PIDC (Vector3); components Vector3C;
   components NetworkC, ActiveMessageC;
@@ -16,6 +17,7 @@ implementation {
   SimC.Environment -> EnvironmentC;
 
   RemoteC.Boot -> SimC.Remote;
+  RemoteC.Switch -> SwitchC;
   RemoteC.AMSend -> NetworkC;
   RemoteC.AMControl -> ActiveMessageC;
 
