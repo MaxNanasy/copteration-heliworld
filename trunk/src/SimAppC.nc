@@ -19,6 +19,7 @@ implementation {
   RemoteC.Boot -> SimC.Remote;
   RemoteC.Switch -> SwitchC;
   RemoteC.AMSend -> NetworkC;
+  RemoteC.Packet -> NetworkC;
   RemoteC.AMControl -> ActiveMessageC;
 
   AutopilotC.Boot -> SimC.Autopilot;

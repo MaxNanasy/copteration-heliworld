@@ -2,6 +2,7 @@ module NetworkC {
   provides {
     interface AMSend;
     interface Receive;
+    interface Packet;
   }
 }
 
@@ -28,5 +29,24 @@ implementation {
   {
     return NULL;
   }
+
+  command void Packet.clear (message_t *msg) { }
+
+  command void *Packet.getPayload (message_t *msg, uint8_t len)
+  {
+    return msg;
+  }
+
+  command uint8_t Packet.maxPayloadLength ()
+  {
+    return 1;
+  }
+
+  command uint8_t Packet.payloadLength (message_t *msg)
+  {
+    return 1;
+  }
+
+  command void Packet.setPayloadLength (message_t *msg, uint8_t len) { }
 
 }

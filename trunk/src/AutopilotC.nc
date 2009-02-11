@@ -16,24 +16,37 @@ module AutopilotC {
 
 implementation {
 
-  bool autopilotActive = FALSE;
+  bool autopilotActive;
 
   event void Boot.booted ()
   {
+    autopilotActive = FALSE;
+    // Initialize the PID with weights of (1, 1, 1) and initial previous error and integral of zero.
     call PID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
   }
 
-  // This callback does not need to inspect the contents of the message, since each message indicates that the autopilot should be toggled.
+  // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'B', then the autopilot is deactivated.  since each message indicates that the autopilot should be toggled.
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
-    autopilotActive = ! autopilotActive;
-    if (autopilotActive) {
-      dbg ("Autopilot", "Autopilot on\n");
-      call MilliTimer.startPeriodic (250);
-    }
-    else {
-      dbg ("Autopilot", "Autopilot off\n");
-      call MilliTimer.stop ();
+    char directive = *(char*)payload;
+    dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
+    switch (directive) {
+    case 'A':
+      if (! autopilotActive) {
+	call MilliTimer.startPeriodic (250);
+	autopilotActive = TRUE;
+	dbg ("Autopilot", "Autopilot activated\n");
+      }
+      break;
+    case 'D':
+      if (autopilotActive) {
+	call MilliTimer.stop ();
+	autopilotActive = FALSE;
+	dbg ("Autopilot", "Autopilot deactivated\n");
+      }
+      break;
+    default:
+      dbg ("Autopilot", "Junk directive: &c\n", directive);
     }
     return bufPtr;
   }
