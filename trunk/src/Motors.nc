@@ -1,6 +1,6 @@
-interface Engine {
-  async command void setTopRotorStrength    (float);
-  async command void setBottomRotorStrength (float);
+interface Motors {
+  async command void setTopRotorPower    (float);
+  async command void setBottomRotorPower (float);
   async command void rotateA ();
   async command void switchA ();
   async command void rotateB ();

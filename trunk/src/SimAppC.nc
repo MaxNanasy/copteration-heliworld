@@ -24,7 +24,7 @@ implementation {
   AutopilotC.Receive -> NetworkC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> EnvironmentC;
-  AutopilotC.Engine -> EnvironmentC;
+  AutopilotC.Motors -> EnvironmentC;
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;
 

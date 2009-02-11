@@ -1,10 +1,20 @@
 To get the source for tinyos-2.x, run:
 
-cvs -z3 -d:pserver:anonymous@tinyos.cvs.sourceforge.net:/cvsroot/tinyos co -P tinyos-2.x
+  cvs -z3 -d:pserver:anonymous@tinyos.cvs.sourceforge.net:/cvsroot/tinyos co -P tinyos-2.x
 
-To simulate the project, build it using the command:
+To simulate the project, build it in the src folder using the command:
 
-make micaz sim
+  make micaz sim
 
 and then execute run.py in the src folder.  You must have ncc, TOSSIM, and all dependencies
 satisfied.  You must also have all necessary global variables set correctly.
+
+To build the actual project, first build in the src folder the remote using the command:
+
+  make -f Makefile.RemoteAppC micaz
+
+and load the resultant program on the mote that is to remain on the ground.  Then build the autopilot using the command:
+
+  make -f Makefile.AutopilotAppC micaz
+
+and load the resultant program on the mote that is to be attached to the helicopter.

@@ -10,10 +10,9 @@ implementation {
   components new TimerMilliC ();
 
   RemoteC.Boot -> MainC;
-  RemoteC.Switch -> SwitchC;
+  //  RemoteC.Switch -> SwitchC;
   RemoteC.AMSend -> AMSenderC;
-  RemoteC.Receive -> AMReceiverC;
   RemoteC.AMControl -> ActiveMessageC;
-  RemoteC.MilliTimer -> TimerMilliC;
+  //  RemoteC.MilliTimer -> TimerMilliC;
 
 }

@@ -2,7 +2,7 @@
 
 module EnvironmentC {
   provides {
-    interface Engine;
+    interface Motors;
     interface IMU;
     interface Init;
   }
@@ -13,7 +13,7 @@ module EnvironmentC {
 
 implementation {
 
-  float topRotorStrength = 0, bottomRotorStrength = 0;
+  float topRotorPower = 0, bottomRotorPower = 0;
   float aAngle = 0, bAngle = 0;
   bool aReversed = FALSE, bReversed = FALSE;
 
@@ -36,17 +36,17 @@ implementation {
     return x < y ? x : y;
   }
 
-  async command void Engine.setTopRotorStrength (float strength)
+  async command void Motors.setTopRotorPower (float power)
   {
-    topRotorStrength = strength;
+    topRotorPower = power;
   }
 
-  async command void Engine.setBottomRotorStrength (float strength)
+  async command void Motors.setBottomRotorPower (float power)
   {
-    bottomRotorStrength = strength;
+    bottomRotorPower = power;
   }
 
-  async command void Engine.rotateA ()
+  async command void Motors.rotateA ()
   {
     if (aReversed) {
       aAngle = max (-1.5, aAngle - .1);
@@ -56,12 +56,12 @@ implementation {
     }
   }
 
-  async command void Engine.switchA ()
+  async command void Motors.switchA ()
   {
     aReversed = ! aReversed;
   }
 
-  async command void Engine.rotateB ()
+  async command void Motors.rotateB ()
   {
     if (bReversed) {
       bAngle = max (-1.5, bAngle - .1);
@@ -71,7 +71,7 @@ implementation {
     }
   }
 
-  async command void Engine.switchB ()
+  async command void Motors.switchB ()
   {
     bReversed = ! bReversed;
   }

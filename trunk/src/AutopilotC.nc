@@ -7,9 +7,10 @@ module AutopilotC {
     interface Receive;
     interface Timer <TMilli> as MilliTimer;
     interface IMU;
-    interface Engine;
+    interface Motors;
     interface StdControl as IMUControl;
     interface PID <Vector3>;
+    interface SplitControl as AMControl;
   }
 }
 
@@ -22,7 +23,7 @@ implementation {
     call PID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
   }
 
-  // This callback does not need to inspect the contents of the message, since all messages indicate that the autopilot should be toggled.
+  // This callback does not need to inspect the contents of the message, since each message indicates that the autopilot should be toggled.
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     autopilotActive = ! autopilotActive;
@@ -35,6 +36,17 @@ implementation {
       call MilliTimer.stop ();
     }
     return bufPtr;
+  }
+
+  event void AMControl.startDone (error_t err) {
+    if (err == SUCCESS) {
+    }
+    else {
+      call AMControl.start ();
+    }
+  }
+
+  event void AMControl.stopDone (error_t err) {
   }
 
   event void MilliTimer.fired () {
