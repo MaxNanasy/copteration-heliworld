@@ -1,3 +1,4 @@
+#include "IMU.h"
 #include "Vector3.h"
 
 // Provides a program for the mote controlling the helicopter.
@@ -62,8 +63,9 @@ implementation {
   event void AMControl.stopDone (error_t err) { }
 
   event void MilliTimer.fired () {
-    Vector3 heliOrientation = call IMU.read (XGYRO_OUT), (Vector3) { call IMU.readByte (YGYRO_OUT), call IMU.readByte (ZGYRO
-    dbg ("Autopilot", "%f, %f, %f\n", heliOrientation.x, heliOrientation.y, heliOrientation.z);
+    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), (Vector3) { call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) }), heliOrientation = (Vector3) { call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) };
+    dbg ("Autopilot", "Acceleration: %f, %f, %f\n", heliAcceleration.x, heliAcceleration.y, heliAcceleration.z);
+    dbg ("Autopilot", "Orientation: %f, %f, %f\n", heliOrientation.x, heliOrientation.y, heliOrientation.z);
   }
 
 }
