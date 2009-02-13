@@ -30,8 +30,11 @@ implementation {
   event void AMSend.sendDone (message_t *bufPtr, error_t error)
   {
     if (error == SUCCESS) {
+      // The documentation says "Interrupts keep running until \"disable()\" is called", so I assume this is the proper protocol to reenable interrupts after they have been processed.
       call Switch.disable ();
       call Switch.enableRisingEdge ();
+      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"); }
+      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); }
       activateAutopilot = ! activateAutopilot;
     }
   }
@@ -50,13 +53,6 @@ implementation {
   async event void Switch.fired ()
   {
     if (call AMSend.send (AM_BROADCAST_ADDR, activateAutopilot ? &activateP : &deactivateP, 1) == SUCCESS) {
-      if (activateAutopilot) {
-	dbg ("Remote", "Autopilot activated (hopefully)\n");
-      }
-      else {
-	dbg ("Remote", "Autopilot deactivated (hopefully)\n");
-      }
-      // The documentation says "Interrupts keep running until \"disable()\" is called", so I assume this is the proper protocol to reenable interrupts after they have been processed.
     }
     else {
       dbg ("Remote", "Message failure\n");
