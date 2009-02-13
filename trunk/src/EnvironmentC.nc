@@ -8,7 +8,8 @@ module EnvironmentC {
     interface Init;
   }
   uses {
-    interface Timer<TMilli> as MilliTimer;
+    interface Timer <TMilli> as MilliTimer;
+    interface Additive <Vector3> as V3;
   }
 }
 
@@ -18,7 +19,7 @@ implementation {
   float aAngle, bAngle;
   bool aReversed, bReversed;
 
-  Vector3 heliPosition, heliVelocity, heliOrientation;
+  Vector3 heliPosition, heliVelocity, heliOrientation, heliAngularVelocity;
 
   uint16_t registers [0x80];
   uint16_t nextValue;
@@ -27,7 +28,7 @@ implementation {
   {
     topRotorPower = bottomRotorPower = aAngle = bAngle = 0;
     aReversed = bReversed = FALSE;
-    heliPosition = heliVelocity = heliOrientation = (Vector3) { 0, 0, 0 };
+    heliPosition = heliVelocity = heliOrientation = heliAngularVelocity = (Vector3) { 0, 0, 0 };
     nextValue = 0;
     call MilliTimer.startPeriodic (1);
     return SUCCESS;
@@ -105,7 +106,8 @@ implementation {
       nextValue = heliOrientation.z;
       break;
     case XACCL_OUT:
-      //      nextValue = topRotor
+      //      nextValue = topRotorPower;
+      break;
     default:
       nextValue = (registers [registr >> 1]);
     }
@@ -114,7 +116,8 @@ implementation {
 
   event void MilliTimer.fired ()
   {
-    
+    heliPosition    = call V3.add (heliPosition   , heliVelocity       );
+    heliOrientation = call V3.add (heliOrientation, heliAngularVelocity);
   }
 
 }

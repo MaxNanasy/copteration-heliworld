@@ -62,8 +62,8 @@ implementation {
   event void AMControl.stopDone (error_t err) { }
 
   event void MilliTimer.fired () {
-    Vector3 a = call PID.updateError (1, (Vector3) {2, -2, 0});
-    dbg ("Autopilot", "%f, %f, %f\n", a.x, a.y, a.z);
+    Vector3 heliOrientation = call IMU.read (XGYRO_OUT), (Vector3) { call IMU.readByte (YGYRO_OUT), call IMU.readByte (ZGYRO
+    dbg ("Autopilot", "%f, %f, %f\n", heliOrientation.x, heliOrientation.y, heliOrientation.z);
   }
 
 }
