@@ -2,12 +2,18 @@ To get the source for tinyos-2.x, run:
 
   cvs -z3 -d:pserver:anonymous@tinyos.cvs.sourceforge.net:/cvsroot/tinyos co -P tinyos-2.x
 
+
+SIMULATION:
+
 To simulate the project, build it in the src folder using the command:
 
   make micaz sim
 
 and then execute run.py in the src folder.  You must have ncc, TOSSIM, and all dependencies
 satisfied.  You must also have all necessary global variables set correctly.
+
+
+REAL DEAL:
 
 To build the actual project, first build in the src folder the remote using the command:
 
