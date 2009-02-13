@@ -4,7 +4,7 @@ configuration RemoteAppC {
 implementation {
 
   components RemoteC, MainC;
-  // This line causes an error for me when I compile for sim, but I have reason to believe (http://www.mail-archive.com/tinyos-help@millennium.berkeley.edu/msg08408.html) that it will work when compiling for the mote.
+  // This line causes an error for me when I compile for sim, but does not complain when I compile for the mote.
   components HplCC2420InterruptsC;
   components new AMSenderC (0), ActiveMessageC;
 
