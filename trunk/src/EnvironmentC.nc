@@ -9,7 +9,6 @@ module EnvironmentC {
   }
   uses {
     interface Timer <TMilli> as MilliTimer;
-    interface Additive <Vector3> as V3;
   }
 }
 
@@ -19,19 +18,33 @@ implementation {
   float aAngle, bAngle;
   bool aReversed, bReversed;
 
-  Vector3 heliPosition, heliVelocity, heliOrientation, heliAngularVelocity;
+  Vector3 position, linearVelocity, orientation, angularVelocity;
 
-  uint16_t registers [0x80];
+  // The value to return for the next IMU transaction.
   uint16_t nextValue;
 
   command error_t Init.init ()
   {
     topRotorPower = bottomRotorPower = aAngle = bAngle = 0;
     aReversed = bReversed = FALSE;
-    heliPosition = heliVelocity = heliOrientation = heliAngularVelocity = (Vector3) { 0, 0, 0 };
+    position = linearVelocity = orientation = angularVelocity = (Vector3) { 0, 0, 0 };
     nextValue = 0;
     call MilliTimer.startPeriodic (1);
     return SUCCESS;
+  }
+
+  // Output is in terms of mg (9.8 mm / s ^ 2).
+  Vector3 linearAcceleration ()
+  {
+    Vector3 accel;
+    accel = (Vector3) { 0, 0, (topRotorPower + bottomRotorPower) };
+    // If the helicopter is above the ground, then add gravity; otherwise, zero out Y.
+    return (Vector3) { accel.x, accel.y, position.z > 0 ? accel.z - GRAVITY : 0 };
+  }
+
+  Vector3 angularAcceleration ()
+  {
+    return orientation;
   }
 
   float max (float x, float y)
@@ -57,10 +70,10 @@ implementation {
   async command void Motors.rotateA ()
   {
     if (aReversed) {
-      aAngle = max (-1.5, aAngle - .1);
+      aAngle = max (-180, aAngle - 1);
     }
     else {
-      aAngle = min ( 1.5, aAngle + .1);
+      aAngle = min ( 180, aAngle + 1);
     }
   }
 
@@ -87,37 +100,56 @@ implementation {
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)
   {
     uint16_t toReturn = nextValue;
-    ((uint8_t *) registers) [registr] = value;
     nextValue = 0;
     return toReturn;
   }
 
+  // Set nextValue to a 16-bit unsigned integer based on a conceptual representation of the argument float as a two's-complement 14-bit fixed-point number.
+  void nextS14 (float x)
+  {
+    nextValue = (1 << 15) | (((int16_t) x) & ~ (3 << 14));
+  }
+
   async command uint16_t IMU.readRegister (uint8_t registr)
   {
+    Vector3 accel = linearAcceleration ();
     uint16_t toReturn = nextValue;
-    switch (registr) {
+
+    switch (registr & ~ 1) {
     case XGYRO_OUT:
-      nextValue = heliOrientation.x;
+      nextS14 ( angularVelocity.x  / GYRO_SCALE);
       break;
     case YGYRO_OUT:
-      nextValue = heliOrientation.y;
+      nextS14 ( angularVelocity.y  / GYRO_SCALE);
       break;
     case ZGYRO_OUT:
-      nextValue = heliOrientation.z;
+      nextS14 ( angularVelocity.z  / GYRO_SCALE);
       break;
     case XACCL_OUT:
-      //      nextValue = topRotorPower;
+      nextS14 ( accel.x            / ACCL_SCALE);
+      break;
+    case YACCL_OUT:
+      nextS14 ( accel.y            / ACCL_SCALE);
+      break;
+    case ZACCL_OUT:
+      nextS14 ((accel.z + GRAVITY) / ACCL_SCALE);
       break;
     default:
-      nextValue = (registers [registr >> 1]);
+      dbg ("Environment", "Unsupported register: %d\n", registr);
+      nextValue = 0;
     }
     return toReturn;
   }
 
   event void MilliTimer.fired ()
   {
-    heliPosition    = call V3.add (heliPosition   , heliVelocity       );
-    heliOrientation = call V3.add (heliOrientation, heliAngularVelocity);
+
+    position        = addV3 (position       , linearVelocity        );
+    orientation     = addV3 (orientation    , angularVelocity       );
+
+    linearVelocity  = addV3 (linearVelocity , linearAcceleration  ());
+    angularVelocity = addV3 (angularVelocity, angularAcceleration ());
+
   }
 
 }

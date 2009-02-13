@@ -9,7 +9,7 @@ implementation {
   components RemoteC, AutopilotC;
   components SwitchC;
   components EnvironmentC;
-  components new PIDC (Vector3), Vector3C;
+  components Vector3C, new PIDC (Vector3) as LinearPIDC, new PIDC (Vector3) as AngularPIDC;
   components NetworkC, ActiveMessageC;
   components new TimerMilliC () as RemoteTimerC, new TimerMilliC () as AutopilotTimerC, new TimerMilliC () as EnvironmentTimerC;
 
@@ -23,15 +23,16 @@ implementation {
   RemoteC.AMControl -> ActiveMessageC;
 
   AutopilotC.Boot -> SimC.Autopilot;
-  AutopilotC.PID -> PIDC;
+  AutopilotC.LinearPID -> LinearPIDC;
+  AutopilotC.AngularPID -> AngularPIDC;
   AutopilotC.Receive -> NetworkC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> EnvironmentC;
   AutopilotC.Motors -> EnvironmentC;
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;
-  EnvironmentC.V3 -> Vector3C;
 
-  PIDC.Additive -> Vector3C;
+  LinearPIDC.Additive -> Vector3C;
+  AngularPIDC.Additive -> Vector3C;
 
 }
