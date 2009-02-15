@@ -15,6 +15,7 @@ module AutopilotC {
     interface PID <Vector3> as LinearPID;
     interface PID <Vector3> as AngularPID;
     interface SplitControl as AMControl;
+    interface Alarm<TMicro, uint32_t>; 
   }
 }
 
@@ -70,12 +71,17 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
+
   event void MilliTimer.fired () {
     Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), (Vector3) { call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) }), heliOrientation = (Vector3) { call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) }, angularCorrection;
     dbg ("Autopilot", "Acceleration: %f, %f, %f\n", heliAcceleration.x, heliAcceleration.y, heliAcceleration.z);
     dbg ("Autopilot", "Orientation: %f, %f, %f\n", heliOrientation.x, heliOrientation.y, heliOrientation.z);
     angularCorrection = call AngularPID.updateError (TIMER_PERIOD, addV3 (targetOrientation, scaleV3 (-1, heliOrientation)));
     dbg ("Autopilot", "Angular correction required: %f, %f, %f\n", angularCorrection.x, angularCorrection.y, angularCorrection.z);
+  }
+  
+  async event void Alarm.fired()
+  {
   }
 
 }

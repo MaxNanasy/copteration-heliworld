@@ -10,6 +10,7 @@ implementation {
   components new AMReceiverC (0), ActiveMessageC;
   components IMUC, MotorsC;
   components new TimerMilliC () as AutopilotTimerC;
+  components new AlarmMicro32C();
 
   AutopilotC.Boot -> MainC;
   AutopilotC.PID -> PIDC;
@@ -18,6 +19,7 @@ implementation {
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
   AutopilotC.Motors -> MotorsC;
+  AutopilotC.Alarm -> AlarmMicro32C;
 
   PIDC.Additive -> Vector3C;
 
