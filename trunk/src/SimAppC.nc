@@ -12,7 +12,7 @@ implementation {
   components Vector3C, new PIDC (Vector3) as LinearPIDC, new PIDC (Vector3) as AngularPIDC;
   components NetworkC, ActiveMessageC;
   components new TimerMilliC () as RemoteTimerC, new TimerMilliC () as AutopilotTimerC, new TimerMilliC () as EnvironmentTimerC;
- 
+  components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (Vector3) as AngularPIDCIntegratorC;
 
   SimC.Boot -> MainC;
   SimC.Environment -> EnvironmentC;
@@ -36,5 +36,9 @@ implementation {
 
   LinearPIDC.Additive -> Vector3C;
   AngularPIDC.Additive -> Vector3C;
+  LinearPIDC.Integrator -> LinearPIDCIntegratorC;
+  AngularPIDC.Integrator -> AngularPIDCIntegratorC;
+  LinearPIDCIntegratorC.Additive -> Vector3C;
+  AngularPIDCIntegratorC.Additive -> Vector3C;
 
 }

@@ -7,25 +7,26 @@ generic module PIDC (typedef a) {
   }
   uses {
     interface Additive <a>;
+    interface Integrator <a>;
   }
 }
 
 implementation {
 
   float kp, ki, kd; // P weight, I weight, D weight
-  a previousError, integral; // the last recorded error value, the time-weighted summation of all known error values
+  a previousError; // the last recorded error value, the time-weighted summation of all known error values
 
   async command void PID.initialize (float p, float i, float d, a pe, a it)
   {
     kp = p; ki = i; kd = d;
-    previousError = pe; integral = it;
+    previousError = pe; call Integrator.initialize (it);
   }
 
   async command a PID.updateError (float dt, a error)
   {
-    a derivative;
+    a integral, derivative;
     // integral (0, t, e (u) * du) = integral (0, t - d, e (u) * du) + d * e (t)
-    integral = call Additive.add (integral, call Additive.scale (dt, error));
+    integral = call Integrator.updateIntegral (dt, error);
     // de (t) / dt = (e (t) - e (t - d)) / d
     derivative = call Additive.scale (1 / dt, call Additive.add (error, call Additive.scale (-1, previousError)));
     previousError = error;

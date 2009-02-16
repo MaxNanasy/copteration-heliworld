@@ -15,10 +15,8 @@ module EnvironmentC {
 
 implementation {
 
-  float topRotorPower, bottomRotorPower;
-  float aAngle, bAngle;
-  bool aReversed, bReversed;
-
+  float topRotorPower, bottomRotorPower, pitchPower, rollPower;
+  
   Vector3 position, linearVelocity, orientation, angularVelocity;
 
   // The value to return for the next IMU transaction.
@@ -26,8 +24,7 @@ implementation {
 
   command error_t Init.init ()
   {
-    topRotorPower = bottomRotorPower = aAngle = bAngle = 0;
-    aReversed = bReversed = FALSE;
+    topRotorPower = bottomRotorPower = pitchPower = rollPower = 0;
     position = linearVelocity = orientation = angularVelocity = (Vector3) { 0, 0, 0 };
     nextValue = 0;
     call MilliTimer.startPeriodic (1);
@@ -68,34 +65,14 @@ implementation {
     bottomRotorPower = power;
   }
 
-  async command void Motors.rotateA ()
+  async command void Motors.setPitchPower (float power)
   {
-    if (aReversed) {
-      aAngle = max (-180, aAngle - 1);
-    }
-    else {
-      aAngle = min ( 180, aAngle + 1);
-    }
+    pitchPower = power;
   }
 
-  async command void Motors.switchA ()
+  async command void Motors.setRollPower (float power)
   {
-    aReversed = ! aReversed;
-  }
-
-  async command void Motors.rotateB ()
-  {
-    if (bReversed) {
-      bAngle = max (-1.5, bAngle - .1);
-    }
-    else {
-      bAngle = min ( 1.5, bAngle + .1);
-    }
-  }
-
-  async command void Motors.switchB ()
-  {
-    bReversed = ! bReversed;
+    rollPower = power;
   }
 
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)

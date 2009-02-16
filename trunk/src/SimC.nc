@@ -13,8 +13,8 @@ implementation {
 
   event void Boot.booted ()
   {
-    signal Remote.booted ();
     signal Autopilot.booted ();
+    signal Remote.booted ();
     call Environment.init ();
   }
 

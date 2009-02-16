@@ -27,6 +27,7 @@ implementation {
 
   event void Boot.booted ()
   {
+  	dbg ("Autopilot", "%d %d %d %d\n", TCNT0, TCNT1, TCNT2, TCNT3);
     autopilotActive = FALSE;
     targetPosition = targetOrientation = (Vector3) {0, 0, 0};
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
