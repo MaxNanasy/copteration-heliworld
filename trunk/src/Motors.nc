@@ -1,13 +1,9 @@
 // An interface for controlling the four helicopter motors.
 interface Motors {
-
-  async command void setTopRotorPower    (float);
+  
+  async command void setTopRotorPower    (float power);
   async command void setBottomRotorPower (float);
-
-  // These four commands refer to the stepper motors.  Please replace their names if you know of better ones.
-  async command void rotateA ();
-  async command void switchA ();
-  async command void rotateB ();
-  async command void switchB ();
+  async command void setPitchPower       (float); //tilt forward and backward
+  async command void setRollPower        (float); //tilt left and right
 
 }
