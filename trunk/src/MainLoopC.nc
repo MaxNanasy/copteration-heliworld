@@ -1,14 +1,22 @@
-#define MS 7353;
+#define MS 7353
+#define MAX_PW_ROTORS 19*MS
+#define MIN_PW_ROTORS MS
+#define MAX_PW_TILTS 2*MS
+#define MIN_PW_TILTS MS
+#define DELTA_ROTORS MAX_PW_ROTORS-MIN_PW_ROTORS
+#define DELTA_TILTS MAX_PW_TILTS-MIN_PW_TILTS
 
 /*assumes we have a cycle-counting integer, that is global. call it cycleCount.*/
 
-module MainLoop {
-  
+module MainLoopC {
+  provides interface Init;
+  provides interface Motors;
 }
 
 implementation {
   //waveform period in units of single-cycle times.
   int period        = MS*2065/100;                  //this is 20.65 milliseconds.
+  int cycleCount    = 0; //this needs to be fixed.
   
   //pulse widths in units of single-cycle times.
   int rollPW        = MS*3/2;                       //this is 1.5 ms     
@@ -28,17 +36,19 @@ implementation {
   //this is the minimum allowable time to exit the loop and let other components do their things.
   int minSleepTime  = MS*3;                         //this is 3 ms.
   
-  command void prepare () {                         //prepare by setting the first period's rise time to 10ms after the current clock cycle.
+  //set the first period's rise time to 10ms after the current clock cycle.
+  command error_t Init.init () {
     nextRise = cycleCount + 10*MS;
     nextRollDrop =  nextRise + rollPW;
-    nextPitchdrop = nextRise + pitchPW;
+    nextPitchDrop = nextRise + pitchPW;
     nextLoDrop =    nextRise + loRotorPW;
     nextHiDrop =    nextRise + hiRotorPW;
+    return SUCCESS;
   }
   
-  command int main_loop () {
+  int main_loop () {
     int cc, temp, remainingTimeUntilNextDuty;
-    bool running = true;
+    bool running = TRUE;
     while(running) {                                //while in this function, run and run and run...
       cc = cycleCount;                              //TODO GET THE CURRENT CLOCK CYCLE NUMBER.
       if(cc >= nextRollDrop) {
@@ -67,9 +77,22 @@ implementation {
       if(remainingTimeUntilNextDuty > (temp = nextHiDrop-cc))    remainingTimeUntilNextDuty = temp;
       if(remainingTimeUntilNextDuty > (temp = nextRise-cc))      remainingTimeUntilNextDuty = temp;
       if(remainingTimeUntilNextDuty > minSleepTime) //if there is a bit of downtime without having to do anything, just exit.
-        running = false;
+        running = FALSE;
     }
                                                     //return the number of milliseconds that the rest of the software is allotted before it has to come back to main_loop.
-    return remainingTimeUntilNextDuty / CYCLES_PER_MS;  //keep it as an integer in order to force rounding down, so that we will err on the side of caution.
+    return remainingTimeUntilNextDuty / MS;  //keep it as an integer in order to force rounding down, so that we will err on the side of caution.
+
+  }
+  async command void Motors.setTopRotorPower (float power) {
+    hiRotorPW = MIN_PW_ROTORS + power*DELTA_ROTORS;
+  }
+  async command void Motors.setBottomRotorPower (float power) {
+    loRotorPW = MIN_PW_ROTORS + power*DELTA_ROTORS;
+  }
+  async command void Motors.setPitchPower (float power) {
+    pitchPW = MIN_PW_TILTS + power*DELTA_TILTS;
+  }
+  async command void Motors.setRollPower (float power) {
+    rollPW = MIN_PW_TILTS + power*DELTA_TILTS;
   }
 }

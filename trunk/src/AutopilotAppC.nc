@@ -12,6 +12,7 @@ implementation {
   components new TimerMilliC () as AutopilotTimerC;
   components new AlarmMicro32C();
   components Atm128SpiC;
+  components MainLoopC;
 
   AutopilotC.Boot -> MainC;
   AutopilotC.LinearPID -> LinearPIDC;
@@ -20,7 +21,7 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
-  AutopilotC.Motors -> MotorsC;
+  AutopilotC.Motors -> MainLoopC;
   AutopilotC.Alarm -> AlarmMicro32C;
 
   LinearPIDC.Additive -> Vector3C;
