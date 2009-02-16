@@ -1,6 +1,7 @@
 #include "IMU.h"
 #include "Vector3.h"
 
+// This module implements the interface to external components (Motors and IMU) in the simulation.
 module EnvironmentC {
   provides {
     interface Motors;
