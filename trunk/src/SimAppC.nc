@@ -15,6 +15,7 @@ implementation {
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (Vector3) as AngularPIDCIntegratorC;
   components MainLoopC, LedsC;
   components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
+  components HplAtm128Timer3C as PWMTimer;
 
   SimC.Boot -> MainC;
   SimC.Environment -> EnvironmentC;
@@ -46,5 +47,6 @@ implementation {
   
   MainLoopC.Leds -> LedsC;
   MainLoopC.Counter -> PWMCounter;
+  PWMCounter.Timer -> PWMTimer.Timer;
 
 }

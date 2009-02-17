@@ -44,7 +44,7 @@ implementation {
   //wire the counter to use for PWM
   MainLoopC.Leds -> LedsC;
   MainLoopC.Counter -> PWMCounter;
-  //PWMCounter.Timer -> PWMTimer.Timer; //Error appears here when attempting to compile!!!!!!
+  PWMCounter.Timer -> PWMTimer.Timer;
   
   //wire the pins for the motor
   MotorsC.APin0 -> GPIOPins.PortA0;

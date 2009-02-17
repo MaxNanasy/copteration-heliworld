@@ -9,7 +9,7 @@
 /*assumes we have a cycle-counting integer, that is global. call it cycleCount.*/
 
 module MainLoopC {
-  uses interface Counter<TMicro,uint32_t>;
+  uses interface Counter<TMicro,uint16_t>;
   uses interface Leds;
 
   provides interface Init;
