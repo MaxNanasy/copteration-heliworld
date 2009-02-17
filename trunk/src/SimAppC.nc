@@ -13,6 +13,8 @@ implementation {
   components NetworkC, ActiveMessageC;
   components new TimerMilliC () as RemoteTimerC, new TimerMilliC () as AutopilotTimerC, new TimerMilliC () as EnvironmentTimerC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (Vector3) as AngularPIDCIntegratorC;
+  components MainLoopC, LedsC;
+  components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
 
   SimC.Boot -> MainC;
   SimC.Environment -> EnvironmentC;
@@ -30,6 +32,7 @@ implementation {
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> EnvironmentC;
   AutopilotC.Motors -> EnvironmentC;
+  AutopilotC.MainLoop -> MainLoopC;
 
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;
@@ -40,5 +43,8 @@ implementation {
   AngularPIDC.Integrator -> AngularPIDCIntegratorC;
   LinearPIDCIntegratorC.Additive -> Vector3C;
   AngularPIDCIntegratorC.Additive -> Vector3C;
+  
+  MainLoopC.Leds -> LedsC;
+  MainLoopC.Counter -> PWMCounter;
 
 }
