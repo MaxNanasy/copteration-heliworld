@@ -13,6 +13,7 @@ implementation {
   components new AlarmMicro32C();
   components Atm128SpiC;
   components MainLoopC;
+  components new IntegratorC(Vector3) as AutoIntegrator;
 
   AutopilotC.Boot -> MainC;
   AutopilotC.LinearPID -> LinearPIDC;
@@ -26,5 +27,8 @@ implementation {
 
   LinearPIDC.Additive -> Vector3C;
   AngularPIDC.Additive -> Vector3C;
+  LinearPIDC.Integrator -> AutoIntegrator;
+  AngularPIDC.Integrator -> AutoIntegrator;
+  AutoIntegrator.Additive -> Vector3C;
   IMUC.SpiByte -> Atm128SpiC;
 }
