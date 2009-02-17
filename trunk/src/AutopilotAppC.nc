@@ -15,8 +15,11 @@ implementation {
   components MainLoopC;
   components new IntegratorC(Vector3) as AutoIntegrator;
   components HplAtm128GeneralIOC as GPIOPins;
-  components new Atm128CounterC(TMicro,uint32_t) as PWMCounter;
-  components LedsC; //for debugging purposes (testing PWMCounter)
+  //timer components
+  components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
+  components HplAtm128Timer3C as PWMTimer;
+  //for debugging purposes (testing PWMCounter)
+  components LedsC;
   
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -28,6 +31,7 @@ implementation {
   AutopilotC.IMU -> IMUC;
   AutopilotC.Motors -> MainLoopC;
   AutopilotC.Alarm -> AlarmMicro32C;
+  AutopilotC.MainLoop -> MainLoopC;
   
   //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;
@@ -38,8 +42,9 @@ implementation {
   IMUC.SpiByte -> Atm128SpiC;
   
   //wire the counter to use for PWM
-  MainLoopC.Counter -> PWMCounter;
   MainLoopC.Leds -> LedsC;
+  MainLoopC.Counter -> PWMCounter;
+  //PWMCounter.Timer -> PWMTimer.Timer; //Error appears here when attempting to compile!!!!!!
   
   //wire the pins for the motor
   MotorsC.APin0 -> GPIOPins.PortA0;

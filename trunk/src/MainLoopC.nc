@@ -14,6 +14,7 @@ module MainLoopC {
 
   provides interface Init;
   provides interface Motors;
+  provides interface MainLoop;
 }
 
 implementation {
@@ -48,7 +49,7 @@ implementation {
     return SUCCESS;
   }
   
-  int main_loop () {
+  async command int MainLoop.main_loop () {
     int cc, temp, remainingTimeUntilNextDuty;
     bool running = TRUE;
     while(running) {                                //while in this function, run and run and run...
@@ -84,8 +85,8 @@ implementation {
       if(remainingTimeUntilNextDuty > (temp = nextLoDrop-cc))    remainingTimeUntilNextDuty = temp;
       if(remainingTimeUntilNextDuty > (temp = nextHiDrop-cc))    remainingTimeUntilNextDuty = temp;
       if(remainingTimeUntilNextDuty > (temp = nextRise-cc))      remainingTimeUntilNextDuty = temp;
-      if(remainingTimeUntilNextDuty > minSleepTime) //if there is a bit of downtime without having to do anything, just exit.
-        running = FALSE;
+      //if(remainingTimeUntilNextDuty > minSleepTime) //if there is a bit of downtime without having to do anything, just exit.
+        //running = FALSE;
     }
                                                     //return the number of milliseconds that the rest of the software is allotted before it has to come back to main_loop.
     return remainingTimeUntilNextDuty / MS;  //keep it as an integer in order to force rounding down, so that we will err on the side of caution.

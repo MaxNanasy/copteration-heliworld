@@ -16,6 +16,7 @@ module AutopilotC {
     interface PID <Vector3> as AngularPID;
     interface SplitControl as AMControl;
     interface Alarm<TMicro, uint32_t>; 
+    interface MainLoop;
   }
 }
 
@@ -33,7 +34,7 @@ implementation {
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
     call  LinearPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
     call AngularPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
-    //call Motors.rotateA ();
+    call MainLoop.main_loop();
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'B', then the autopilot is deactivated.  since each message indicates that the autopilot should be toggled.
