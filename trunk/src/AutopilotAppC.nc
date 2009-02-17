@@ -32,6 +32,7 @@ implementation {
   AutopilotC.Motors -> MainLoopC;
   AutopilotC.Alarm -> AlarmMicro32C;
   AutopilotC.MainLoop -> MainLoopC;
+  AutopilotC.Init -> MainLoopC;
   
   //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;

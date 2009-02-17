@@ -34,6 +34,7 @@ implementation {
   AutopilotC.IMU -> EnvironmentC;
   AutopilotC.Motors -> EnvironmentC;
   AutopilotC.MainLoop -> MainLoopC;
+  AutopilotC.Init -> MainLoopC;
 
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;

@@ -7,6 +7,7 @@
 module AutopilotC {
   uses {
     interface Boot;
+    interface Init;
     interface Receive;
     interface Timer <TMilli> as MilliTimer;
     interface IMU;
@@ -34,6 +35,7 @@ implementation {
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
     call  LinearPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
     call AngularPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
+    call Init.init ();
     call MainLoop.main_loop();
   }
 
