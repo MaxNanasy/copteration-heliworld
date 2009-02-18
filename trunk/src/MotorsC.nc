@@ -5,19 +5,10 @@ module MotorsC {
   }
   uses {
 
-    interface GeneralIO as TopRotorPin0;
-    interface GeneralIO as TopRotorPin1;
-
-    interface GeneralIO as BottomRotorPin0;
-    interface GeneralIO as BottomRotorPin1;
-
-    interface GeneralIO as APin0;
-    interface GeneralIO as APin1;
-    interface GeneralIO as APin2;
-
-    interface GeneralIO as BPin0;
-    interface GeneralIO as BPin1;
-    interface GeneralIO as BPin2;
+    interface GeneralIO as TopRotorPin;
+    interface GeneralIO as BottomRotorPin;
+    interface GeneralIO as RollPin;
+    interface GeneralIO as PitchPin;
 
   }
 }

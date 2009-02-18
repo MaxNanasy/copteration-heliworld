@@ -17,6 +17,7 @@ implementation {
   components DeadReckoningC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
+  //GPIO Pins for motor control
   components HplAtm128GeneralIOC as GPIOPins;
   //timer components
   components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
@@ -37,6 +38,9 @@ implementation {
   AutopilotC.Alarm -> AlarmMicro32C;
   AutopilotC.MainLoop -> MainLoopC;
   AutopilotC.Init -> MainLoopC;
+  //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
+  //the helicopter.  TODO: actually use this pin when activating the autopilot.
+  AutopilotC.MuxSelectBit -> GPIOPins.PortC4;
   
   //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;
@@ -56,11 +60,15 @@ implementation {
 
   IMUC.SpiByte -> Atm128SpiC;
   
-  //wire the counter to use for PWM
+  //wire the counter to use for PWM.  Corresponds to pin 33 on the 51 pin connector.
   MainLoopC.Leds -> LedsC;
   MainLoopC.Counter -> PWMCounter;
   PWMCounter.Timer -> PWMTimer.Timer;
   
-  //wire the pins for the motor
-  MotorsC.APin0 -> GPIOPins.PortA0;
+  //wire the pins for the motor.  Corresponds to pins 29-32 on the 51 pin connector.
+  MotorsC.TopRotorPin -> GPIOPins.PortC0;
+  MotorsC.BottomRotorPin -> GPIOPins.PortC1;
+  MotorsC.RollPin -> GPIOPins.PortC2;
+  MotorsC.PitchPin -> GPIOPins.PortC3;
+
 }

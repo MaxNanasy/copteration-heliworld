@@ -19,6 +19,7 @@ module AutopilotC {
     interface Alarm<TMicro, uint32_t>; 
     interface MainLoop;
     interface DeadReckoning;
+    interface GeneralIO as MuxSelectBit;
   }
 }
 
