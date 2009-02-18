@@ -14,10 +14,11 @@ module AutopilotC {
     interface Motors;
     interface StdControl as IMUControl;
     interface PID <Vector3> as LinearPID;
-    interface PID <Vector3> as AngularPID;
+    interface PID <float>   as YawPID   ;
     interface SplitControl as AMControl;
     interface Alarm<TMicro, uint32_t>; 
     interface MainLoop;
+    interface DeadReckoning;
   }
 }
 
@@ -25,16 +26,19 @@ implementation {
 
   bool autopilotActive;
 
-  Vector3 targetPosition, targetOrientation;
+  Vector3 targetPosition;
+  float targetYaw;
 
   event void Boot.booted ()
   {
   	dbg ("Autopilot", "%d %d %d %d\n", TCNT0, TCNT1, TCNT2, TCNT3);
     autopilotActive = FALSE;
-    targetPosition = targetOrientation = (Vector3) {0, 0, 0};
+    targetPosition = zeroV3;
+    targetYaw = 0;
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
-    call  LinearPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
-    call AngularPID.initialize (1, 1, 1, (Vector3) {0, 0, 0}, (Vector3) {0, 0, 0});
+    call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
+    call YawPID.initialize (1, 1, 1, 0, 0);
+    call DeadReckoning.initialize (zeroV3, zeroV3);
     call Init.init ();
     call MainLoop.main_loop();
   }
@@ -77,11 +81,14 @@ implementation {
 
 
   event void MilliTimer.fired () {
-    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), (Vector3) { call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) }), heliOrientation = (Vector3) { call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) }, angularCorrection;
-    dbg ("Autopilot", "Acceleration: %f, %f, %f\n", heliAcceleration.x, heliAcceleration.y, heliAcceleration.z);
-    dbg ("Autopilot", "Orientation: %f, %f, %f\n", heliOrientation.x, heliOrientation.y, heliOrientation.z);
-    angularCorrection = call AngularPID.updateError (TIMER_PERIOD, addV3 (targetOrientation, scaleV3 (-1, heliOrientation)));
-    dbg ("Autopilot", "Angular correction required: %f, %f, %f\n", angularCorrection.x, angularCorrection.y, angularCorrection.z);
+    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), (Vector3) { call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) }), heliOrientation = (Vector3) { call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) }, position, orientation;
+    DoubleVector3 positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, heliAcceleration, heliOrientation);
+    float yawCorrection;
+    position = positionAndOrientation.a; orientation = positionAndOrientation.b;
+    dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
+    dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.x, orientation.y, orientation.z);
+    yawCorrection = call YawPID.updateError (TIMER_PERIOD, orientation.z - targetYaw);
+    dbg ("Autopilot", "Yaw correction required: %f, %f, %f\n", yawCorrection);
   }
   
   async event void Alarm.fired()
