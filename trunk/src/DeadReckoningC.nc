@@ -20,13 +20,12 @@ implementation {
     call AVtoO.initialize (orientation);
   }
 
-  // This code doesn't actually work properly yet, since linear quantities are measured relative to the helicopter's orientation, and this code treats them as absolute.
   command DoubleVector3 DeadReckoning.updateReckoning (float dt, Vector3 linearAcceleration, Vector3 angularVelocity)
   {
-    DoubleVector3 toReturn;
-    toReturn.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, linearAcceleration));
-    toReturn.b = call AVtoO.updateIntegral (dt, angularVelocity);
-    return toReturn;
+    DoubleVector3 positionAndOrientation;
+    positionAndOrientation.b = call AVtoO.updateIntegral (dt, angularVelocity);
+    positionAndOrientation.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, rotateV3 (linearAcceleration, positionAndOrientation.b)));
+    return positionAndOrientation;
   }
 
 }
