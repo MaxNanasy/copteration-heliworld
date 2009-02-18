@@ -25,7 +25,7 @@ implementation {
   command error_t Init.init ()
   {
     topRotorPower = bottomRotorPower = pitchPower = rollPower = 0;
-    position = linearVelocity = orientation = angularVelocity = (Vector3) { 0, 0, 0 };
+    position = linearVelocity = orientation = angularVelocity = zeroV3;
     nextValue = 0;
     call MilliTimer.startPeriodic (1);
     return SUCCESS;
@@ -35,9 +35,9 @@ implementation {
   Vector3 linearAcceleration ()
   {
     Vector3 accel;
-    accel = (Vector3) { 0, 0, (topRotorPower + bottomRotorPower) };
+    accel = V3 ( 0, 0, (topRotorPower + bottomRotorPower) );
     // If the helicopter is above the ground, then add gravity; otherwise, zero out Y.
-    return (Vector3) { accel.x, accel.y, position.z > 0 ? accel.z - GRAVITY : 0 };
+    return V3 ( accel.x, accel.y, position.z > 0 ? accel.z - GRAVITY : 0 );
   }
 
   Vector3 angularAcceleration ()

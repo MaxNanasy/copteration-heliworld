@@ -16,4 +16,9 @@ implementation {
     return x * y;
   }
 
+  command float Additive.zero ()
+  {
+    return 0;
+  }
+
 }

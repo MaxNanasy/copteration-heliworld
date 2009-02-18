@@ -18,4 +18,9 @@ implementation {
     return scaleV3 (a, b);
   }
 
+  command Vector3 Additive.zero ()
+  {
+    return zeroV3;
+  }
+
 }
