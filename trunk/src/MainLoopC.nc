@@ -9,12 +9,23 @@
 /*assumes we have a cycle-counting integer, that is global. call it cycleCount.*/
 
 module MainLoopC {
-  uses interface Counter<TMicro,uint16_t>;
-  uses interface Leds;
 
-  provides interface Init;
-  provides interface Motors;
-  provides interface MainLoop;
+  uses {
+    interface Counter<TMicro,uint16_t>;
+    interface Leds;
+
+    interface GeneralIO as TopRotorPin;
+    interface GeneralIO as BottomRotorPin;
+    interface GeneralIO as RollPin;
+    interface GeneralIO as PitchPin;
+  }
+
+  provides {
+    interface Init;
+    interface Motors;
+    interface MainLoop;
+  }
+
 }
 
 implementation {

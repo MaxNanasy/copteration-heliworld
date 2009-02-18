@@ -39,7 +39,7 @@ implementation {
   AutopilotC.MainLoop -> MainLoopC;
   AutopilotC.Init -> MainLoopC;
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
-  //the helicopter.  TODO: actually use this pin when activating the autopilot.
+  //the helicopter.  TODO: actually use this pin when activating the autopilot.  Corresponds to pin 33 on the 51 pin connector.
   AutopilotC.MuxSelectBit -> GPIOPins.PortC4;
   
   //wire up the remaining components
@@ -60,10 +60,15 @@ implementation {
 
   IMUC.SpiByte -> Atm128SpiC;
   
-  //wire the counter to use for PWM.  Corresponds to pin 33 on the 51 pin connector.
+  //wire the counter to use for PWM.
   MainLoopC.Leds -> LedsC;
   MainLoopC.Counter -> PWMCounter;
   PWMCounter.Timer -> PWMTimer.Timer;
-  
+
+  //wire the pins for the motor.  Corresponds to pins 29-32 on the 51 pin connector.
+  MainLoopC.TopRotorPin    -> GPIOPins.PortC0;
+  MainLoopC.BottomRotorPin -> GPIOPins.PortC1;
+  MainLoopC.RollPin        -> GPIOPins.PortC2;
+  MainLoopC.PitchPin       -> GPIOPins.PortC3;
 
 }

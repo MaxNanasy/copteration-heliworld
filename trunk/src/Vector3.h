@@ -36,8 +36,8 @@ Vector3 scaleV3 (float a, Vector3 b)
   return V3 ( a * b.x, a * b.y, a * b.z );
 }
 
-// Input: (relative vector, orientation)
-// Output: absolute vector
+// Input: (original vector, angles)
+// Output: rotated vector
 Vector3 rotateV3 (Vector3 a, Vector3 orientation)
 {
 
