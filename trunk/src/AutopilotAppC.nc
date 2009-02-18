@@ -7,7 +7,7 @@ implementation {
 
   components AutopilotC, MainC;
   components new AMReceiverC (0), ActiveMessageC;
-  components IMUC, MotorsC;
+  components IMUC;
   components new TimerMilliC () as AutopilotTimerC;
   components new AlarmMicro32C();
   components Atm128SpiC;
@@ -65,10 +65,5 @@ implementation {
   MainLoopC.Counter -> PWMCounter;
   PWMCounter.Timer -> PWMTimer.Timer;
   
-  //wire the pins for the motor.  Corresponds to pins 29-32 on the 51 pin connector.
-  MotorsC.TopRotorPin -> GPIOPins.PortC0;
-  MotorsC.BottomRotorPin -> GPIOPins.PortC1;
-  MotorsC.RollPin -> GPIOPins.PortC2;
-  MotorsC.PitchPin -> GPIOPins.PortC3;
 
 }
