@@ -36,9 +36,9 @@ Vector3 scaleV3 (float a, Vector3 b)
   return V3 ( a * b.x, a * b.y, a * b.z );
 }
 
-// Input: (original vector, angles)
-// Output: rotated vector
-Vector3 rotateV3 (Vector3 a, Vector3 orientation)
+// Input: (relative vector, orientation)
+// Output: absolute vector
+Vector3 relativeToAbsoluteV3 (Vector3 a, Vector3 orientation)
 {
 
   float
@@ -50,9 +50,30 @@ Vector3 rotateV3 (Vector3 a, Vector3 orientation)
     sY = sin (orientation.yaw  )
     ;
   
-  return V3 ( a.x *    cP  * cY + a.y * (- cR * sY + sR * sP * cY) + a.z * (  sR * sY + cR * sP * cY),
-              a.x *    cP  * sY + a.y * (  cR * cY + sR * sP * sY) + a.z * (- sR * cY + cR * sP * sY),
-              a.x * (- sP)      + a.y * (  sR * cP               ) + a.z * (  cR * cP               )
+  return V3 ( a.x * (  cP * cY) + a.y * (- cR * sY + sR * sP * cY) + a.z * (  sR * sY + cR * sP * cY),
+	      a.x * (  cP * sY) + a.y * (  cR * cY + sR * sP * sY) + a.z * (- sR * cY + cR * sP * sY),
+              a.x * (- sP     ) + a.y * (  sR * cP               ) + a.z * (  cR * cP               )
+	      );
+
+}
+
+// Input: (absolute vector, orientation)
+// Output: relative vector
+Vector3 absoluteToRelativeV3 (Vector3 a, Vector3 orientation)
+{
+
+  float
+    cR = cos (orientation.roll ),
+    cP = cos (orientation.pitch),
+    cY = cos (orientation.yaw  ),
+    sR = sin (orientation.roll ),
+    sP = sin (orientation.pitch),
+    sY = sin (orientation.yaw  )
+    ;
+  
+  return V3 ( a.x *    cP  * cY                + a.y *    cP * sY                 + a.z * (- sP     ),
+              a.x * (- cR * sY + sR * sP * cY) + a.y * (  cR * cY + sR * sP * sY) + a.z * (  sR * cP),
+              a.x * (  sR * sY + cR * sP * cY) + a.y * (- sR * cY + cR * sP * sY) + a.z * (  cR * cP)
 	      );
 
 }

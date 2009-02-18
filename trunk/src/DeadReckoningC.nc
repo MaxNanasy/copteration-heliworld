@@ -15,16 +15,16 @@ implementation {
 
   command void DeadReckoning.initialize (Vector3 position, Vector3 orientation)
   {
-    call LAtoLV.initialize (zeroV3);
-    call LVtoLP.initialize (position);
-    call AVtoO.initialize (orientation);
+    call LAtoLV.initialize (zeroV3     );
+    call LVtoLP.initialize (position   );
+    call AVtoO .initialize (orientation);
   }
 
   command DoubleVector3 DeadReckoning.updateReckoning (float dt, Vector3 linearAcceleration, Vector3 angularVelocity)
   {
     DoubleVector3 positionAndOrientation;
     positionAndOrientation.b = call AVtoO.updateIntegral (dt, angularVelocity);
-    positionAndOrientation.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, rotateV3 (linearAcceleration, positionAndOrientation.b)));
+    positionAndOrientation.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, relativeToAbsoluteV3 (linearAcceleration, positionAndOrientation.b)));
     return positionAndOrientation;
   }
 
