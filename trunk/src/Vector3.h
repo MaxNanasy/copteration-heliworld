@@ -38,7 +38,7 @@ Vector3 scaleV3 (float a, Vector3 b)
 
 // Input: (relative vector, orientation)
 // Output: absolute vector
-Vector3 relativeToAbsoluteV3 (Vector3 a, Vector3 orientation)
+Vector3 relativeToAbsoluteV3 (Vector3 orientation, Vector3 a)
 {
 
   float
@@ -59,7 +59,7 @@ Vector3 relativeToAbsoluteV3 (Vector3 a, Vector3 orientation)
 
 // Input: (absolute vector, orientation)
 // Output: relative vector
-Vector3 absoluteToRelativeV3 (Vector3 a, Vector3 orientation)
+Vector3 absoluteToRelativeV3 (Vector3 orientation, Vector3 a)
 {
 
   float

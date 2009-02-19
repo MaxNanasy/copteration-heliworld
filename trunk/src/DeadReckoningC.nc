@@ -24,7 +24,7 @@ implementation {
   {
     DoubleVector3 positionAndOrientation;
     positionAndOrientation.b = call AVtoO.updateIntegral (dt, angularVelocity);
-    positionAndOrientation.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, relativeToAbsoluteV3 (linearAcceleration, positionAndOrientation.b)));
+    positionAndOrientation.a = call LVtoLP.updateIntegral (dt, call LAtoLV.updateIntegral (dt, relativeToAbsoluteV3 (positionAndOrientation.b, linearAcceleration)));
     return positionAndOrientation;
   }
 

@@ -81,16 +81,19 @@ implementation {
 
 
   event void MilliTimer.fired () {
-    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), V3 ( call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) )), heliOrientation = V3 ( call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) ), position, orientation, linearCorrection;
+    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), V3 ( call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) )), heliOrientation = V3 ( call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) ), position, orientation, absoluteLinearCorrection, linearCorrection;
     DoubleVector3 positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, heliAcceleration, heliOrientation);
     float yawCorrection;
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
     dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
-    yawCorrection    = call    YawPID.updateError (TIMER_PERIOD, targetYaw - orientation.yaw);
-    linearCorrection = call LinearPID.updateError (TIMER_PERIOD, addV3 (targetPosition, scaleV3 (-1, position)));
-    dbg ("Autopilot",    "Yaw correction required: %f\n", yawCorrection);
-    dbg ("Autopilot", "Linear correction required: %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
+    yawCorrection            = call    YawPID.updateError (TIMER_PERIOD, targetYaw - orientation.yaw);
+    absoluteLinearCorrection = call LinearPID.updateError (TIMER_PERIOD, addV3 (targetPosition, scaleV3 (-1, position)));
+    linearCorrection = absoluteToRelativeV3 (orientation, absoluteLinearCorrection);
+    dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
+    dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
+    dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
+    
     // T + B = z
     // T - B = yaw
     // -----------
