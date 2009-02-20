@@ -19,6 +19,7 @@ implementation {
   components MainLoopC, LedsC;
   components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
   components HplAtm128Timer3C as PWMTimer;
+  // components HPLT1pwmM as RotorPWM; //, HPLT3pwmM as TiltPWM;
 
   SimC.Boot -> MainC;
   SimC.Environment -> EnvironmentC;

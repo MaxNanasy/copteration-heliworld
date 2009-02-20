@@ -1,4 +1,4 @@
-/* HPLT1pwm.nc -- Interface for Pulse Width Modulation outputs
+/* HPLpwm.nc -- Interface for Pulse Width Modulation outputs
  *					using Timer1A,B on pins:
  * 						PWM1aout   PB5		MOTORAPWM
  *						PWM1bout   PB6		MOTORBPWM
