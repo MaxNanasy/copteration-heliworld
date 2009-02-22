@@ -2,7 +2,8 @@
 
 #define TIME_PERIOD 20.6
 
-#define TILT_MS (
+//WE NEED TO HAVE THE CORRECT VALUE FOR THIS!!!
+#define TILT_MS 1
 
 #define ROTOR_TOP 1150
 #define ROTOR_MAX ROTOR_TOP
@@ -18,7 +19,8 @@ module MotorsC {
     // A: Top rotor
     // B: Bottom rotor
     interface HPLT1pwm as RotorPWM;
-    // A: 
+    // A: pitch
+    // B: roll
     interface HPLT1pwm as TiltPWM;
   }
 }
@@ -43,15 +45,16 @@ implementation {
   {
     RotorPWM.setBpw (power * ROTOR_MAX);
   }
-
+  //All the way to left is 1ms (min pulse)
+  //All the way to right is 2 ms (max pulse)
   async command void Motors.setPitchPower (float power)
   {
-    
+    TiltPWM.setApw((power+1)*TILT_MS);
   }
 
   async command void Motors.setRollPower (float power)
   {
-    
+    TiltPWM.setBpw((power+1)*TILT_MS);
   }
 
 }

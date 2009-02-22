@@ -7,6 +7,7 @@
  * Based on HPLMotor.nc in the contrib/cotsbots project by Sarah Bergbreiter
  */
 
+
 #define sbi(port, bit) ((port) |= _BV(bit))
 #define cbi(port, bit) ((port) &= ~_BV(bit))
 #define inp(port) (port)
@@ -24,6 +25,7 @@ static inline int TOSH_READ_##name##_PIN() \
   {return (inp(PIN##port) & (1 << bit)) != 0;} \
 static inline void TOSH_MAKE_##name##_OUTPUT() {sbi(DDR##port , bit);} \
 static inline void TOSH_MAKE_##name##_INPUT() {cbi(DDR##port , bit);} 
+
 
 module HPLT1pwmM
 {
