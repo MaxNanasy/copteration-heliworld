@@ -15,7 +15,7 @@ interface HPLT1pwm
    *   with default duration of 20ms and outputs OFF.
    *  @return nada.
    */
-  command result_t init();
+  command error_t init();
 
   /** setPreScale()
    *  Set the clock pre-scale and clock source value, default: internal /64

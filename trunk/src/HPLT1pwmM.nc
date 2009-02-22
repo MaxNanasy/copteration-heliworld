@@ -7,13 +7,30 @@
  * Based on HPLMotor.nc in the contrib/cotsbots project by Sarah Bergbreiter
  */
 
+#define sbi(port, bit) ((port) |= _BV(bit))
+#define cbi(port, bit) ((port) &= ~_BV(bit))
+#define inp(port) (port)
+#define inb(port) (port)
+#define outp(value, port) ((port) = (value))
+#define outb(port, value) ((port) = (value))
+#define inw(port) (*(volatile uint16_t *)&(port))
+#define outw(port, value) ((*(volatile uint16_t *)&(port)) = (value))
+#define PRG_RDB(addr) pgm_read_byte(addr)
+
+#define TOSH_ASSIGN_PIN(name, port, bit) \
+static inline void TOSH_SET_##name##_PIN() {sbi(PORT##port , bit);} \
+static inline void TOSH_CLR_##name##_PIN() {cbi(PORT##port , bit);} \
+static inline int TOSH_READ_##name##_PIN() \
+  {return (inp(PIN##port) & (1 << bit)) != 0;} \
+static inline void TOSH_MAKE_##name##_OUTPUT() {sbi(DDR##port , bit);} \
+static inline void TOSH_MAKE_##name##_INPUT() {cbi(DDR##port , bit);} 
+
 module HPLT1pwmM
 {
   provides interface HPLT1pwm;
 }
 implementation
 {
-// assign PWM pin names
 TOSH_ASSIGN_PIN(PWM1Aout, B, 5);	// port,pin B5
 TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
  
@@ -25,7 +42,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *					 pulse repeat at approx 20ms
    *    				 outputs at 0 (until a set PW is called)
   **/
-  command result_t HPLT1pwm.init()
+  command error_t HPLT1pwm.init()
   {
     // Set pin directions and clear output value
     TOSH_MAKE_PWM1Aout_OUTPUT(); //This sets the data direction of pin PWM1A (DDRB bit 5)
