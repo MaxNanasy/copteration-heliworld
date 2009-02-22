@@ -1,4 +1,4 @@
-/* HPLT1pwmM.nc -- Code to use Timer1A and 1B for Pulse Width Modulation or
+/* HPLpwmM.nc -- Code to use Timer1A and 1B for Pulse Width Modulation or
  *   Frequency Generator outputs on PWM1a,b (ports PB5,6).
  *	Defaults to values used to control "hobby-servo" motors
  *	 but includes a more general PWM setup interface.
@@ -6,30 +6,11 @@
  * Authors:		M.Schippling
  * Based on HPLMotor.nc in the contrib/cotsbots project by Sarah Bergbreiter
  */
-
-
-#define sbi(port, bit) ((port) |= _BV(bit))
-#define cbi(port, bit) ((port) &= ~_BV(bit))
-#define inp(port) (port)
-#define inb(port) (port)
-#define outp(value, port) ((port) = (value))
-#define outb(port, value) ((port) = (value))
-#define inw(port) (*(volatile uint16_t *)&(port))
-#define outw(port, value) ((*(volatile uint16_t *)&(port)) = (value))
-#define PRG_RDB(addr) pgm_read_byte(addr)
-
-#define TOSH_ASSIGN_PIN(name, port, bit) \
-static inline void TOSH_SET_##name##_PIN() {sbi(PORT##port , bit);} \
-static inline void TOSH_CLR_##name##_PIN() {cbi(PORT##port , bit);} \
-static inline int TOSH_READ_##name##_PIN() \
-  {return (inp(PIN##port) & (1 << bit)) != 0;} \
-static inline void TOSH_MAKE_##name##_OUTPUT() {sbi(DDR##port , bit);} \
-static inline void TOSH_MAKE_##name##_INPUT() {cbi(DDR##port , bit);} 
-
+#include "avr_definitions.h"
 
 module HPLT1pwmM
 {
-  provides interface HPLT1pwm;
+  provides interface HPLpwm;
 }
 implementation
 {
@@ -44,7 +25,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *					 pulse repeat at approx 20ms
    *    				 outputs at 0 (until a set PW is called)
   **/
-  command error_t HPLT1pwm.init()
+  command error_t HPLpwm.init()
   {
     // Set pin directions and clear output value
     TOSH_MAKE_PWM1Aout_OUTPUT(); //This sets the data direction of pin PWM1A (DDRB bit 5)
@@ -70,11 +51,11 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
     sbi(TCCR1B, WGM13);  // 		""""			"""" set bit4: 0x10
 
     // Set prescaler to CK/64
-    call HPLT1pwm.setPreScale( 0x03 );
+    call HPLpwm.setPreScale( 0x03 );
 
     // set TOP value for both A&B.
     //  NOTE: 1150 is magic number to get ~20ms pulse spacing.
-    call HPLT1pwm.setFreq( 1150 );
+    call HPLpwm.setFreq( 1150 );
 
     // Initialize OCR1A/B,H/L registers to count from 0
     //   shuts off counting and keeps outputs at 0
@@ -101,7 +82,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *		7 -- 111 External clock source on Tn pin. Clock on rising edge
    * @return nada.
    **/
-  command void HPLT1pwm.setPreScale( uint8_t ps )
+  command void HPLpwm.setPreScale( uint8_t ps )
   {
   	// OR with WGM13 bit setting 0x10, as per init()
 	outp( (ps & 0x07) | 0x10, TCCR1B );
@@ -123,7 +104,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *
    *  @return nada.
    **/
-  command void HPLT1pwm.setFreq( uint16_t f )
+  command void HPLpwm.setFreq( uint16_t f )
   {
     // This is just loading the ICR1 register to the value of TOP (see ATMega documentation for further details)
     outp( (f >> 8) & 0xff, ICR1H);
@@ -138,7 +119,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *			The output high pulse will be 2*pw *preScaleClocks long.
    *  @return nada.
    **/
-  command void HPLT1pwm.setApw( uint16_t pw )
+  command void HPLpwm.setApw( uint16_t pw )
   {
     // This is just loading the OCR1A register with the desired pulse width
     // The input should be in the range 0-TOP
@@ -156,7 +137,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *			The output high pulse will be 2*pw *preScaleClocks long.
    *  @return nada.
    **/
-  command void HPLT1pwm.setBpw( uint16_t pw )
+  command void HPLpwm.setBpw( uint16_t pw )
   {
     // My comments for setApw apply here as well.
     sbi( TCCR1A, COM1B1 );	// clear B output on compare match
@@ -171,7 +152,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *		    The acceptable range is from 1-255
    *  @return nada
    **/
-  command void HPLT1pwm.setApw8( uint8_t w )
+  command void HPLpwm.setApw8( uint8_t w )
   {
     outp( w, OCR1AL );	// set Pwidth low byte
   }
@@ -183,7 +164,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *		    The acceptable range is from 1-255
    *  @return nada
    **/
-  command void HPLT1pwm.setBpw8( uint8_t w )
+  command void HPLpwm.setBpw8( uint8_t w )
   {
     outp( w, OCR1BL );	// set Pwidth low byte
   }
@@ -196,7 +177,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    * 				use stopAll() to shut off entirely.
    *  @return nada
    **/
-  command void HPLT1pwm.setABpw8( uint8_t dcA, uint8_t dcB )
+  command void HPLpwm.setABpw8( uint8_t dcA, uint8_t dcB )
   {
     sbi( TCCR1A, COM1A1 );	// clear A output on compare match
     outp( dcA, OCR1AL );	// set A Pwidth low byte
@@ -208,7 +189,7 @@ TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
    *    Stop both the PWM outputs and set to 0.
    *  @return nada.
    */
-  command void HPLT1pwm.stopAll()
+  command void HPLpwm.stopAll()
   {
     cbi(TCCR1A, COM1A1);			// disconnect from A output pin
     TOSH_CLR_PWM1Aout_PIN();		// clear A output pin

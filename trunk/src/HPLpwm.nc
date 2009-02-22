@@ -8,7 +8,7 @@
  * Authors:		M.Schipling
  */
 
-interface HPLT1pwm
+interface HPLpwm
 {
   /** Init()
    *  Setup the Timer1A,B for Phase and Frequency correct PWM
