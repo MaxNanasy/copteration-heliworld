@@ -7,7 +7,6 @@
 module AutopilotC {
   uses {
     interface Boot;
-    interface Init;
     interface Receive;
     interface Timer <TMilli> as MilliTimer;
     interface IMU;
@@ -16,10 +15,10 @@ module AutopilotC {
     interface PID <Vector3> as LinearPID;
     interface PID <float>   as YawPID   ;
     interface SplitControl as AMControl;
-    interface Alarm<TMicro, uint32_t>; 
-    interface MainLoop;
     interface DeadReckoning;
-    interface GeneralIO as MuxSelectBit;
+    // 0: pass-through
+    // 1: autopilot
+    interface GeneralIO as MuxSelect;
   }
 }
 
@@ -39,8 +38,7 @@ implementation {
     call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
     call YawPID.initialize    (1, 1, 1, 0     , 0     );
     call DeadReckoning.initialize (zeroV3, zeroV3);
-    call Init.init ();
-    call MainLoop.main_loop();
+    call MuxSelect.clr ();
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'B', then the autopilot is deactivated.
@@ -52,6 +50,7 @@ implementation {
     case 'A':
       if (! autopilotActive) {
 	call MilliTimer.startPeriodic (TIMER_PERIOD);
+	call MuxSelect.set ();
 	autopilotActive = TRUE;
 	dbg ("Autopilot", "Autopilot activated\n");
       }
@@ -79,11 +78,30 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
+  #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); prevData.prev = data; if (data | (3 << 14)) return prevData; } while (0)
+  //Reads the data from the IMU and checks whether there is new data or not. If there is no new data then it returns the last read data.
+  DoubleVector3 readIMUData()
+  {
+
+    static DoubleVector3 prevData;
+    uint16_t data;
+    call IMU.readRegister(XACCL_OUT);
+   
+    CHECKDATA (a.x, YACCL_OUT);
+    CHECKDATA (a.y, ZACCL_OUT);
+    CHECKDATA (a.z, XGYRO_OUT);
+    CHECKDATA (b.pitch, YGYRO_OUT);
+    CHECKDATA (b.roll , ZGYRO_OUT);
+    CHECKDATA (b.yaw  , ZGYRO_OUT);
+
+  }
 
   event void MilliTimer.fired () {
-    Vector3 heliAcceleration = (call IMU.readRegister (XACCL_OUT), V3 ( call IMU.readRegister (YACCL_OUT), call IMU.readRegister (ZACCL_OUT), call IMU.readRegister (XGYRO_OUT) )), heliOrientation = V3 ( call IMU.readRegister (YGYRO_OUT), call IMU.readRegister (ZGYRO_OUT), call IMU.readRegister (ZGYRO_OUT) ), position, orientation, absoluteLinearCorrection, linearCorrection;
-    DoubleVector3 positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, heliAcceleration, heliOrientation);
+
+    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
+    DoubleVector3 LAandAV = readIMUData (), positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, LAandAV.a, LAandAV.b);
     float yawCorrection;
+
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
     dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
@@ -103,10 +121,7 @@ implementation {
     call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
     call Motors.setPitchPower       (linearCorrection.y                );
     call Motors.setRollPower        (linearCorrection.x                );
+
   }
   
-  async event void Alarm.fired()
-  {
-  }
-
 }

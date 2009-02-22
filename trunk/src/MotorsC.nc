@@ -1,14 +1,13 @@
 #include <Atm128Timer.h>
 
-#define TIME_PERIOD 20.6
+#define TIME_PERIOD 20.6 //milliseconds
 
-//WE NEED TO HAVE THE CORRECT VALUE FOR THIS!!!
-#define TILT_MS 1
+#define TILT_MS (TILT_TOP / TIME_PERIOD)
 
 #define ROTOR_TOP 1150
 #define ROTOR_MAX ROTOR_TOP
-#define TILT_TOP 1150
-#define TILT_MAX 1150 / 10
+#define TILT_TOP 1150	//ticks per time period
+#define TILT_MAX (TILT_MS * 2)
 
 module MotorsC {
   provides {
@@ -18,43 +17,50 @@ module MotorsC {
   uses {
     // A: Top rotor
     // B: Bottom rotor
-    interface HPLT1pwm as RotorPWM;
+    interface HPLpwm as RotorPWM;
     // A: pitch
     // B: roll
-    interface HPLT1pwm as TiltPWM;
+    interface HPLpwm as TiltPWM;
   }
 }
 
 implementation {
 
-  async command error_t Init.init ()
+  command error_t Init.init ()
   {
-    RotorPWM.setApw (0);
-    RotorPWM.setBpw (0);
-    TiltPWM .setApw (0);
-    TiltPWM .setBpw (0);
+    call RotorPWM.setApw (0);
+    call RotorPWM.setBpw (0);
+    call TiltPWM .setApw (0);
+    call TiltPWM .setBpw (0);
     return SUCCESS;
+  }
+
+  // To prevent any out-of-range sets.
+  float normalize (float x)
+  {
+    return x < 0 ? 0 : x > 1 ? 1 : x;
   }
 
   async command void Motors.setTopRotorPower (float power)
   {
-    RotorPWM.setApw (power * ROTOR_MAX);
+    call RotorPWM.setApw (normalize (power) * ROTOR_MAX);
   }
 
   async command void Motors.setBottomRotorPower (float power)
   {
-    RotorPWM.setBpw (power * ROTOR_MAX);
+    call RotorPWM.setBpw (normalize (power) * ROTOR_MAX);
   }
-  //All the way to left is 1ms (min pulse)
-  //All the way to right is 2 ms (max pulse)
+
+  // All the way to left  is 1 ms (min pulse)
+  // All the way to right is 2 ms (max pulse)
   async command void Motors.setPitchPower (float power)
   {
-    TiltPWM.setApw((power+1)*TILT_MS);
+    call TiltPWM.setApw((normalize (power) + 1)*TILT_MS);
   }
 
   async command void Motors.setRollPower (float power)
   {
-    TiltPWM.setBpw((power+1)*TILT_MS);
+    call TiltPWM.setBpw((normalize (power) + 1)*TILT_MS);
   }
 
 }

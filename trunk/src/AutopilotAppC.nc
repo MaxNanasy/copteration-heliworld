@@ -11,20 +11,16 @@ implementation {
   components new TimerMilliC () as AutopilotTimerC;
   components new AlarmMicro32C();
   components Atm128SpiC;
-  components MainLoopC;
   components Vector3C, floatC;
   components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
-  //GPIO Pins for motor control
+  components MotorsC;
+  components HPLT1pwmC, HPLT3pwmC;
+  //GPIO Pins for mux control
   components HplAtm128GeneralIOC as GPIOPins;
-  //timer components
-  components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
-  components HplAtm128Timer3C as PWMTimer;
-  //for debugging purposes (testing PWMCounter)
-  components LedsC;
-  
+
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
   AutopilotC.LinearPID -> LinearPIDC;
@@ -34,14 +30,15 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
-  AutopilotC.Motors -> MainLoopC;
-  AutopilotC.Alarm -> AlarmMicro32C;
-  AutopilotC.MainLoop -> MainLoopC;
-  AutopilotC.Init -> MainLoopC;
+  AutopilotC.Motors -> MotorsC;
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
-  //the helicopter.  TODO: actually use this pin when activating the autopilot.  Corresponds to pin 33 on the 51 pin connector.
-  AutopilotC.MuxSelectBit -> GPIOPins.PortC4;
-  
+  //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
+  AutopilotC.MuxSelect -> GPIOPins.PortC4;
+
+  MotorsC.RotorPWM -> HPLT1pwmC;
+  MotorsC.RotorPWM -> HPLT3pwmC;
+  MotorsC. TiltPWM -> HPLT3pwmC;
+
   //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;
   YawPIDC   .Additive -> floatC;
@@ -60,15 +57,4 @@ implementation {
 
   IMUC.SpiByte -> Atm128SpiC;
   
-  //wire the counter to use for PWM.
-  MainLoopC.Leds -> LedsC;
-  MainLoopC.Counter -> PWMCounter;
-  PWMCounter.Timer -> PWMTimer.Timer;
-
-  //wire the pins for the motor.  Corresponds to pins 29-32 on the 51 pin connector.
-  MainLoopC.TopRotorPin    -> GPIOPins.PortC0;
-  MainLoopC.BottomRotorPin -> GPIOPins.PortC1;
-  MainLoopC.RollPin        -> GPIOPins.PortC2;
-  MainLoopC.PitchPin       -> GPIOPins.PortC3;
-
 }

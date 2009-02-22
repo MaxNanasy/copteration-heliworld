@@ -1,4 +1,4 @@
-/* HPLT1pwmM.nc -- Code to use Timer1A and 1B for Pulse Width Modulation or
+/* HPLT1pwmC.nc -- Code to use Timer1A and 1B for Pulse Width Modulation or
  *   Frequency Generator outputs on PWM1a,b (ports PB5,6).
  *	Defaults to values used to control "hobby-servo" motors
  *	 but includes a more general PWM setup interface.
@@ -6,20 +6,20 @@
  * Authors:		M.Schippling
  * Based on HPLMotor.nc in the contrib/cotsbots project by Sarah Bergbreiter
  */
+
 #include "avr_definitions.h"
 
-module HPLT3pwmM
+module HPLT1pwmC
 {
   provides interface HPLpwm;
 }
 implementation
 {
-// assign PWM pin names
-TOSH_ASSIGN_PIN(PWM3Aout, E, 5);	// port,pin B5
-TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
+TOSH_ASSIGN_PIN(PWM1Aout, B, 5);	// port,pin B5
+TOSH_ASSIGN_PIN(PWM1Bout, B, 6);	// port,pin B6
  
   /** init()
-   *  Setup the Timer3A,B for Phase and Frequency correct PWM
+   *  Setup the Timer1A,B for Phase and Frequency correct PWM
    *   default settings: /64 internal clock pre-scale
    *					 ICR1 as TOP (frequency count)
    *					 OCR1A,B as pulse-width count
@@ -29,27 +29,27 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
   command error_t HPLpwm.init()
   {
     // Set pin directions and clear output value
-    TOSH_MAKE_PWM3Aout_OUTPUT(); //This sets the data direction of pin PWM3A (DDRE bit 5)
-    TOSH_MAKE_PWM3Bout_OUTPUT(); //This sets the data direction of pin PWM3B (DDRE bit 4)
+    TOSH_MAKE_PWM1Aout_OUTPUT(); //This sets the data direction of pin PWM1A (DDRB bit 5)
+    TOSH_MAKE_PWM1Bout_OUTPUT(); //This sets the data direction of pin PWM1B (DDRB bit 4)
     // Now clear the output values
-    TOSH_CLR_PWM3Aout_PIN();
-    TOSH_CLR_PWM3Bout_PIN();
+    TOSH_CLR_PWM1Aout_PIN();
+    TOSH_CLR_PWM1Bout_PIN();
 
     // Do one bit at a time to not overwrite other things that may be set
-    // Sean's Note: we can set these values to 11 instead of 10 such that TCCR3A is 1111XXXX to set output
+    // Sean's Note: we can set these values to 11 instead of 10 such that TCCR1A is 1111XXXX to set output
     // on compare (rising) and clear output on compare (falling) instead of the opposite, which is what
     // is currently set
-    sbi(TCCR3A, COM1A1 );// COMA = 10bin    -- clear output on compare
-    cbi(TCCR3A, COM1A0); // 				so we can use 8bit speed values
-    sbi(TCCR3A, COM1B1); // COMB = 10bin
-    cbi(TCCR3A, COM1B0); //TCCR3A now looks like: 1010XXXX
+    sbi(TCCR1A, COM1A1 );// COMA = 10bin    -- clear output on compare
+    cbi(TCCR1A, COM1A0); // 				so we can use 8bit speed values
+    sbi(TCCR1A, COM1B1); // COMB = 10bin
+    cbi(TCCR1A, COM1B0); //TCCR1A now looks like: 1010XXXX
     
     // NOTE: these bits are shared with both A&B PWM outputs
     // See page 135 of the ATMega128 Datasheet for more info on WGM (Waveform Generation Mode)
-    cbi(TCCR3A, WGM10);  // WGM = 1000bin  -- Phase/freq correct, ICR bottom
-    cbi(TCCR3A, WGM11);  // 		""""
-    cbi(TCCR3B, WGM12);  // 		"""" (note: shadowed in setPreScale())
-    sbi(TCCR3B, WGM13);  // 		""""			"""" set bit4: 0x10
+    cbi(TCCR1A, WGM10);  // WGM = 1000bin  -- Phase/freq correct, ICR bottom
+    cbi(TCCR1A, WGM11);  // 		""""
+    cbi(TCCR1B, WGM12);  // 		"""" (note: shadowed in setPreScale())
+    sbi(TCCR1B, WGM13);  // 		""""			"""" set bit4: 0x10
 
     // Set prescaler to CK/64
     call HPLpwm.setPreScale( 0x03 );
@@ -60,10 +60,10 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
 
     // Initialize OCR1A/B,H/L registers to count from 0
     //   shuts off counting and keeps outputs at 0
-    outp( 0, OCR3AH);
-    outp( 0, OCR3AL);
-    outp( 0, OCR3BH);
-    outp( 0, OCR3BL);
+    outp( 0, OCR1AH);
+    outp( 0, OCR1AL);
+    outp( 0, OCR1BH);
+    outp( 0, OCR1BL);
 
     // Note: not setting any interrupts
 
@@ -86,7 +86,7 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
   command void HPLpwm.setPreScale( uint8_t ps )
   {
   	// OR with WGM13 bit setting 0x10, as per init()
-	outp( (ps & 0x07) | 0x10, TCCR3B );
+	outp( (ps & 0x07) | 0x10, TCCR1B );
   }
 
   /** setFreq()
@@ -107,9 +107,9 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
    **/
   command void HPLpwm.setFreq( uint16_t f )
   {
-    // This is just loading the ICR3 register to the value of TOP (see ATMega documentation for further details)
-    outp( (f >> 8) & 0xff, ICR3H);
-    outp(  f & 0xff, ICR3L);
+    // This is just loading the ICR1 register to the value of TOP (see ATMega documentation for further details)
+    outp( (f >> 8) & 0xff, ICR1H);
+    outp(  f & 0xff, ICR1L);
   }
 
   /** setApw()
@@ -125,9 +125,9 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
     // This is just loading the OCR1A register with the desired pulse width
     // The input should be in the range 0-TOP
     // The width of the pulse is equal to (pw/TOP)*T where T is the period determined by foc1a.
-    sbi( TCCR3A, COM1A1 );	// clear A output on compare match
-    outp( (pw >> 8) & 0xff, OCR3AH );
-    outp(  pw & 0xff, OCR3AL );
+    sbi( TCCR1A, COM1A1 );	// clear A output on compare match
+    outp( (pw >> 8) & 0xff, OCR1AH );
+    outp(  pw & 0xff, OCR1AL );
   }
 
   /** setBpw()
@@ -141,9 +141,9 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
   command void HPLpwm.setBpw( uint16_t pw )
   {
     // My comments for setApw apply here as well.
-    sbi( TCCR3A, COM1B1 );	// clear B output on compare match
-    outp( (pw >> 8) & 0xff, OCR3BH );
-    outp(  pw & 0xff, OCR3BL );
+    sbi( TCCR1A, COM1B1 );	// clear B output on compare match
+    outp( (pw >> 8) & 0xff, OCR1BH );
+    outp(  pw & 0xff, OCR1BL );
   }
   
   /** setApw8()
@@ -155,7 +155,7 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
    **/
   command void HPLpwm.setApw8( uint8_t w )
   {
-    outp( w, OCR3AL );	// set Pwidth low byte
+    outp( w, OCR1AL );	// set Pwidth low byte
   }
 
   /** setBpw8()
@@ -167,7 +167,7 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
    **/
   command void HPLpwm.setBpw8( uint8_t w )
   {
-    outp( w, OCR3BL );	// set Pwidth low byte
+    outp( w, OCR1BL );	// set Pwidth low byte
   }
 
   /** setABpw8()
@@ -180,10 +180,10 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
    **/
   command void HPLpwm.setABpw8( uint8_t dcA, uint8_t dcB )
   {
-    sbi( TCCR3A, COM1A1 );	// clear A output on compare match
-    outp( dcA, OCR3AL );	// set A Pwidth low byte
-    sbi( TCCR3A, COM1B1 );	// clear B output on compare match
-    outp( dcB, OCR3BL );	// set B Pwidth low byte
+    sbi( TCCR1A, COM1A1 );	// clear A output on compare match
+    outp( dcA, OCR1AL );	// set A Pwidth low byte
+    sbi( TCCR1A, COM1B1 );	// clear B output on compare match
+    outp( dcB, OCR1BL );	// set B Pwidth low byte
   }
   
   /** stopAll()
@@ -192,16 +192,16 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
    */
   command void HPLpwm.stopAll()
   {
-    cbi(TCCR3A, COM1A1);			// disconnect from A output pin
-    TOSH_CLR_PWM3Aout_PIN();		// clear A output pin
+    cbi(TCCR1A, COM1A1);			// disconnect from A output pin
+    TOSH_CLR_PWM1Aout_PIN();		// clear A output pin
     cbi(TCCR1A, COM1B1);			// disconnect from B output pin
-    TOSH_CLR_PWM3Bout_PIN();		// clear B output pin
+    TOSH_CLR_PWM1Bout_PIN();		// clear B output pin
 	
     /** could set PW to motor 0 default...but doesn't matter...
-    outp( 0, OCR3AH );
-    outp( 90, OCR3AL );
-    outp( 0, OCR3BH );
-    outp( 90, OCR3BL );
+    outp( 0, OCR1AH );
+    outp( 90, OCR1AL );
+    outp( 0, OCR1BH );
+    outp( 90, OCR1BL );
     **/
   }
 

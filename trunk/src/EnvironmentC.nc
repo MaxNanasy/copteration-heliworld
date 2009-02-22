@@ -7,6 +7,7 @@ module EnvironmentC {
     interface Motors;
     interface IMU;
     interface Init;
+    interface GeneralIO as MuxSelect;
   }
   uses {
     interface Timer <TMilli> as MilliTimer;
@@ -43,16 +44,6 @@ implementation {
   Vector3 angularAcceleration ()
   {
     return orientation;
-  }
-
-  float max (float x, float y)
-  {
-    return x < y ? y : x;
-  }
-
-  float min (float x, float y)
-  {
-    return x < y ? x : y;
   }
 
   async command void Motors.setTopRotorPower (float power)
@@ -129,5 +120,14 @@ implementation {
     angularVelocity = addV3 (angularVelocity, angularAcceleration ());
 
   }
+
+  async command void MuxSelect.clr () { }
+  async command bool MuxSelect.get () { }
+  async command bool MuxSelect.isInput () { }
+  async command bool MuxSelect.isOutput () { }
+  async command void MuxSelect.makeInput () { }
+  async command void MuxSelect.makeOutput () { }
+  async command void MuxSelect.set () { }
+  async command void MuxSelect.toggle () { }
 
 }

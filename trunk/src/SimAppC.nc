@@ -16,12 +16,8 @@ implementation {
   components DeadReckoningC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
-  components MainLoopC, LedsC;
-  components new Atm128CounterC(TMicro,uint16_t) as PWMCounter;
-  components HplAtm128Timer3C as PWMTimer;
-  components HPLT1pwmM as RotorPWM;
-  components HPLT3pwmM as TiltPWM;
-
+  components HPLT1pwmM as RotorPWM, HPLT3pwmM as TiltPWM;
+  components SwitchC as AutopilotMuxSelector; // Should be EnvironmentC eventually.
 
   SimC.Boot -> MainC;
   SimC.Environment -> EnvironmentC;
@@ -40,8 +36,7 @@ implementation {
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> EnvironmentC;
   AutopilotC.Motors -> EnvironmentC;
-  AutopilotC.MainLoop -> MainLoopC;
-  AutopilotC.Init -> MainLoopC;
+  AutopilotC.MuxSelect -> EnvironmentC;
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;
 
@@ -59,9 +54,5 @@ implementation {
   LAtoLVIntegratorC.Additive -> Vector3C;
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
-
-  MainLoopC.Leds -> LedsC;
-  MainLoopC.Counter -> PWMCounter;
-  PWMCounter.Timer -> PWMTimer.Timer;
 
 }
