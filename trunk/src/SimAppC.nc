@@ -16,7 +16,7 @@ implementation {
   components DeadReckoningC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
-  components HPLT1pwmM as RotorPWM, HPLT3pwmM as TiltPWM;
+  components HPLT1pwmC as RotorPWM, HPLT3pwmC as TiltPWM;
   components SwitchC as AutopilotMuxSelector; // Should be EnvironmentC eventually.
 
   SimC.Boot -> MainC;

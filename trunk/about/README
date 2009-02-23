@@ -23,4 +23,8 @@ and load the resultant program on the mote that is to remain on the ground.  The
 
   make -f Makefile.AutopilotAppC micaz
 
-and load the resultant program on the mote that is to be attached to the helicopter.
+and load the resultant program on the mote that is to be attached to the helicopter.  To load a program onto a mote, make it using, for instance, one of the above two commands, then, with the mote plugged into the mote programmer and the programmer plugged into a USB port, use the command:
+
+  make micaz reinstall mib520,/dev/ttyUSBn
+
+in which /dev/ttyUSBn should be replaced with the USB port the programmer is plugged into, such as /dev/ttyUSB0.  Make sure the green and red lights are lit on the programmer before this command; hold the programmer and mote steady while it loads.
