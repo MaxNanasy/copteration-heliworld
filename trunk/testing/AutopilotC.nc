@@ -1,3 +1,8 @@
+/* Yellow        : Autopilot is active.
+   Green (Toggle): A message has been received.
+   Red   (Toggle): A timer period has elapsed while the autopilot was active.
+*/
+
 #include "IMU.h"
 #include "Vector3.h"
 

@@ -1,3 +1,8 @@
+/* Yellow: Button is being pressed.
+   Green : Autopilot is about to be activated.
+   Red   : Autopilot has just been activated.
+*/
+
 // Provides a program for the mote that, when a button is pressed, signals the autopilot to begin.
 module RemoteC {
   uses {
@@ -5,8 +10,7 @@ module RemoteC {
     interface AMSend;
     interface Packet;
     interface SplitControl as AMControl;
-    interface GeneralIO as On;
-    interface GeneralIO as Off;
+    interface GeneralIO as Switch;
     interface Leds;
     //interface Timer <TMilli>;
     interface Alarm <TMicro, uint32_t>;
@@ -19,14 +23,15 @@ implementation {
   // FALSE: Send a deactivation packet.
   bool activateAutopilot;
 
+  bool switchPressed;
+
   // Packets for activation and deactivation respectively.
   message_t activateP, deactivateP;
 
   event void Boot.booted ()
   {
-    call On.makeInput ();
-    call Off.makeInput ();
-   
+    call Switch.makeInput ();
+    switchPressed = FALSE;
     activateAutopilot = TRUE;
     call AMControl.start ();
     *(char*)(call Packet.getPayload (&activateP  , 1)) = 'A';
@@ -38,24 +43,18 @@ implementation {
 
   event void AMSend.sendDone (message_t *bufPtr, error_t error)
   {
-    if (error == SUCCESS)
-      call Leds.led0Toggle ();
-    /*    if (error == SUCCESS) {
+    if (error == SUCCESS) {
       // The documentation says "Interrupts keep running until \"disable()\" is called", so I assume this is the proper protocol to reenable interrupts after they have been processed.
-      call Switch.disable ();
-      call Switch.enableRisingEdge ();
-      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"); Leds.led0On (); }
-      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); Leds.led0Off (); }
-      activateAutopilot = ! activateAutopilot;
-      } */
+      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"  ); call Leds.led0On  (); }
+      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); call Leds.led0Off (); }
+    }
   }
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
     }
     else {
-      call AMControl.start ();	call Leds.led2Toggle ();
-
+      call AMControl.start ();
     }
   }
 
@@ -63,19 +62,25 @@ implementation {
 
   async event void Alarm.fired ()
   {
-    if (!call Off.get ()) {
-      call Leds.led1On ();
-      call AMSend.send (AM_BROADCAST_ADDR, &deactivateP, 1);
-    }
-    else {
-      call Leds.led1Off ();
-    }
-    if (!call On .get ()) {
+
+    if (! call Switch.get ()) {
       call Leds.led2On ();
-      call AMSend.send (AM_BROADCAST_ADDR, &activateP, 1);
+      switchPressed = TRUE;
+      if (activateAutopilot) {
+	call Leds.led1On ();
+	call AMSend.send (AM_BROADCAST_ADDR, &activateP, 1);
+      }
+      else {
+	call Leds.led1Off ();
+	call AMSend.send (AM_BROADCAST_ADDR, &deactivateP, 1);
+      }
     }
     else {
-      call Leds.led2Off ();
+      if (switchPressed) {
+	call Leds.led2Off ();
+	switchPressed = FALSE;
+	activateAutopilot = ! activateAutopilot;
+      }
     }
 
     call Alarm.start (100);
@@ -85,6 +90,7 @@ implementation {
     else {
       dbg ("Remote", "Message failure\n");
       }*/
+
   }
 
 }

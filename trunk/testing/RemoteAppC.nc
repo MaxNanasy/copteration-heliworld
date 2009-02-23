@@ -21,7 +21,7 @@ implementation {
 //  RemoteC.Timer -> TimerMilliC;
   RemoteC.Alarm -> AlarmMicro32C;
   RemoteC.Leds -> LedsC;
-  RemoteC.Off -> PinsC.PortE6; // INT2
-  RemoteC.On  -> PinsC.PortE7; // INT3
+  RemoteC.Switch -> PinsC.PortE6; // INT2
+  RemoteC.Switch -> PinsC.PortE7; // INT3
 
 }
