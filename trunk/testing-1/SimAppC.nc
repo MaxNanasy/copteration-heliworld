@@ -1,46 +1,45 @@
 #include "Vector3.h"
 
-configuration AutopilotAppC {
+configuration SimAppC {
 }
 
 implementation {
 
-  components AutopilotC, MainC;
-  components new AMReceiverC (0), ActiveMessageC;
-  components IMUC;
-  components new TimerMilliC () as AutopilotTimerC;
-  components new AlarmMicro32C();
-  components Atm128SpiC;
+  components SimC, MainC;
+  components RemoteC, AutopilotC;
+  components SwitchC;
+  components EnvironmentC;
+  components NetworkC, ActiveMessageC;
+  components new TimerMilliC () as RemoteTimerC, new TimerMilliC () as AutopilotTimerC, new TimerMilliC () as EnvironmentTimerC;
   components Vector3C, floatC;
   components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
-  components MotorsC;
-  components LedsC;
-  components HPLT1pwmC, HPLT3pwmC;
-  //GPIO Pins for mux control
-  components HplAtm128GeneralIOC as GPIOPins;
+  components HPLT1pwmC as RotorPWM, HPLT3pwmC as TiltPWM;
+  components SwitchC as AutopilotMuxSelector; // Should be EnvironmentC eventually.
 
-  //wire up the autopilot to everything it needs
-  AutopilotC.Boot -> MainC;
+  SimC.Boot -> MainC;
+  SimC.Environment -> EnvironmentC;
+
+  RemoteC.Boot -> SimC.Remote;
+  RemoteC.Switch -> SwitchC;
+  RemoteC.AMSend -> NetworkC;
+  RemoteC.Packet -> NetworkC;
+  RemoteC.AMControl -> ActiveMessageC;
+
+  AutopilotC.Boot -> SimC.Autopilot;
   AutopilotC.LinearPID -> LinearPIDC;
   AutopilotC.YawPID -> YawPIDC;
   AutopilotC.DeadReckoning -> DeadReckoningC;
-  AutopilotC.Receive -> AMReceiverC;
-  AutopilotC.AMControl -> ActiveMessageC;
+  AutopilotC.Receive -> NetworkC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
-  AutopilotC.IMU -> IMUC;
-  AutopilotC.Motors -> MotorsC;
-  AutopilotC.Leds -> LedsC;
-  //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
-  //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
-  AutopilotC.MuxSelect -> GPIOPins.PortC4;
+  AutopilotC.IMU -> EnvironmentC;
+  AutopilotC.Motors -> EnvironmentC;
+  AutopilotC.MuxSelect -> EnvironmentC;
 
-  MotorsC.RotorPWM -> HPLT1pwmC;
-  MotorsC. TiltPWM -> HPLT3pwmC;
+  EnvironmentC.MilliTimer -> EnvironmentTimerC;
 
-  //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;
   YawPIDC   .Additive -> floatC;
   LinearPIDC.Integrator -> LinearPIDCIntegratorC;
@@ -56,6 +55,4 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
-  IMUC.SpiByte -> Atm128SpiC;
-  
 }
