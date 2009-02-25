@@ -15,8 +15,8 @@ module HPLT3pwmC
 implementation
 {
 // assign PWM pin names
-TOSH_ASSIGN_PIN(PWM3Aout, E, 5);	// port,pin B5
-TOSH_ASSIGN_PIN(PWM3Bout, E, 6);	// port,pin B6
+TOSH_ASSIGN_PIN(PWM3Aout, E, 3);	// port,pin E3
+TOSH_ASSIGN_PIN(PWM3Bout, E, 4);	// port,pin E4
  
   /** init()
    *  Setup the Timer3A,B for Phase and Frequency correct PWM

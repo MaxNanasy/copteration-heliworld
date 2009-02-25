@@ -28,6 +28,8 @@ implementation {
 
   command error_t Init.init ()
   {
+    call RotorPWM.init();
+    call TiltPWM.init();
     call RotorPWM.setApw (0);
     call RotorPWM.setBpw (0);
     call TiltPWM .setApw (0);

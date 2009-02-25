@@ -43,6 +43,8 @@ implementation {
     call MotorsInit.init ();
     call Motors.setTopRotorPower (0.5);
     call Motors.setBottomRotorPower (0.25);
+    call Motors.setPitchPower (0.5);
+    call Motors.setRollPower (0.25);
     //autopilotActive = FALSE;
     //targetPosition = zeroV3;
     //    targetYaw = 0;
