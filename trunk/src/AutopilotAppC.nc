@@ -17,6 +17,7 @@ implementation {
   components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
   components MotorsC;
+  components LedsC;
   components HPLT1pwmC, HPLT3pwmC;
   //GPIO Pins for mux control
   components HplAtm128GeneralIOC as GPIOPins;
@@ -30,13 +31,14 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
-  AutopilotC.Motors -> MotorsC;
+  AutopilotC.Motors -> MotorsC.Motors;
+  AutopilotC.Leds -> LedsC;
+  AutopilotC.MotorsInit -> MotorsC.Init;
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
   //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
   AutopilotC.MuxSelect -> GPIOPins.PortC4;
 
   MotorsC.RotorPWM -> HPLT1pwmC;
-  MotorsC.RotorPWM -> HPLT3pwmC;
   MotorsC. TiltPWM -> HPLT3pwmC;
 
   //wire up the remaining components

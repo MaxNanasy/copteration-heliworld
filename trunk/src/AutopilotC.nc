@@ -1,7 +1,12 @@
+/* Yellow        : Autopilot is active.
+   Green (Toggle): A message has been received.
+   Red   (Toggle): A timer period has elapsed while the autopilot was active.
+*/
+
 #include "IMU.h"
 #include "Vector3.h"
 
-#define TIMER_PERIOD 250
+#define TIMER_PERIOD 200
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
@@ -19,6 +24,8 @@ module AutopilotC {
     // 0: pass-through
     // 1: autopilot
     interface GeneralIO as MuxSelect;
+    interface Leds;
+    interface Init as MotorsInit;
   }
 }
 
@@ -31,35 +38,43 @@ implementation {
 
   event void Boot.booted ()
   {
-    autopilotActive = FALSE;
-    targetPosition = zeroV3;
-    targetYaw = 0;
+    call Leds.led1On ();
+    call AMControl.start ();
+    call MotorsInit.init ();
+    call Motors.setTopRotorPower (0.5);
+    call Motors.setBottomRotorPower (0.25);
+    //autopilotActive = FALSE;
+    //targetPosition = zeroV3;
+    //    targetYaw = 0;
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
-    call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
-    call YawPID.initialize    (1, 1, 1, 0     , 0     );
-    call DeadReckoning.initialize (zeroV3, zeroV3);
-    call MuxSelect.clr ();
+    //    call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
+    //    call YawPID.initialize    (1, 1, 1, 0     , 0     );
+    //    call DeadReckoning.initialize (zeroV3, zeroV3);
+    //    call MuxSelect.clr ();
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'B', then the autopilot is deactivated.
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     char directive = *(char*)payload;
+    call Leds.led1Toggle ();
     dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
     switch (directive) {
     case 'A':
+      call Leds.led2On ();
       if (! autopilotActive) {
-	call MilliTimer.startPeriodic (TIMER_PERIOD);
-	call MuxSelect.set ();
-	autopilotActive = TRUE;
-	dbg ("Autopilot", "Autopilot activated\n");
+		call MilliTimer.startPeriodic (TIMER_PERIOD);
+	//	call MuxSelect.set ();
+		autopilotActive = TRUE;
+	//	dbg ("Autopilot", "Autopilot activated\n");
       }
       break;
     case 'D':
+      call Leds.led2Off ();
       if (autopilotActive) {
-	call MilliTimer.stop ();
-	autopilotActive = FALSE;
-	dbg ("Autopilot", "Autopilot deactivated\n");
+		call MilliTimer.stop ();
+		autopilotActive = FALSE;
+	//	dbg ("Autopilot", "Autopilot deactivated\n");
       }
       break;
     default:
@@ -70,6 +85,7 @@ implementation {
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
+      call Leds.led0On ();
     }
     else {
       call AMControl.start ();
@@ -98,7 +114,9 @@ implementation {
 
   event void MilliTimer.fired () {
 
-    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
+    call Leds.led0Toggle ();
+
+    /*    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
     DoubleVector3 LAandAV = readIMUData (), positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, LAandAV.a, LAandAV.b);
     float yawCorrection;
 
@@ -121,7 +139,7 @@ implementation {
     call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
     call Motors.setPitchPower       (linearCorrection.y                );
     call Motors.setRollPower        (linearCorrection.x                );
-
-  }
+    */
+    }
   
 }
