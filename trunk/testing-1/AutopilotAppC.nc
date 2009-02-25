@@ -31,8 +31,9 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
-  AutopilotC.Motors -> MotorsC;
+  AutopilotC.Motors -> MotorsC.Motors;
   AutopilotC.Leds -> LedsC;
+  AutopilotC.MotorsInit -> MotorsC.Init;
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
   //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
   AutopilotC.MuxSelect -> GPIOPins.PortC4;

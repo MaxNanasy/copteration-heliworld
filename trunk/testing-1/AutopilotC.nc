@@ -25,6 +25,7 @@ module AutopilotC {
     // 1: autopilot
     interface GeneralIO as MuxSelect;
     interface Leds;
+    interface Init as MotorsInit;
   }
 }
 
@@ -39,6 +40,7 @@ implementation {
   {
     call Leds.led1On ();
     call AMControl.start ();
+    call MotorsInit.init ();
     call Motors.setTopRotorPower (0.5);
     call Motors.setBottomRotorPower (0.25);
     //autopilotActive = FALSE;
