@@ -1,4 +1,4 @@
-module Language.NesC.Parser where
+module Language.NesC.Parser (configuration) where
 
 import Language.NesC.Types
 
