@@ -1,8 +1,8 @@
 #!/usr/bin/runhaskell
 
--- Usage  : ./Main.hs InputConfFile OutputGraphFile [dotOptions]
--- Example: ./Main.hs MainAppC.nc   MainAppC.png     -Tpng
--- This program takes a NesC configuration file and outputs a directed graph of its wirings generated through the dot program.
+-- Usage  : ./Main.hs
+-- Example: ./Main.hs < MainAppC.nc | dot -Tpng > MainAppC.png
+-- This program treats its stdin as a NesC configuration file and outputs a directed graph in "dot" format of its wirings.
 
 module Main where
 
@@ -12,13 +12,10 @@ import Language.NesC.Graph
 import Text.ParserCombinators.Parsec
 
 import System.IO
-import System.Process
-import System.Environment
+
+import Control.Monad
 
 main :: IO ()
 main = do
-  inFile : outFile : dotArgs <- getArgs
-  (dotIn, dotOut, _, _) <- runInteractiveProcess "dot" dotArgs Nothing Nothing
-  Right conf <- parseFromFile configuration inFile
-  hPutStr dotIn (graphConfiguration conf)
-  hGetContents dotOut >>= writeFile outFile
+  Right conf <- liftM (parse configuration "stdin") getContents
+  putStr $ graphConfiguration conf
