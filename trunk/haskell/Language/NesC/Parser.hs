@@ -7,7 +7,7 @@ import Text.ParserCombinators.Parsec
 
 import Control.Monad
 
-type NesCParser = Parser
+type NesCParser a = Parser a
 
 configuration :: NesCParser Configuration
 configuration = do
