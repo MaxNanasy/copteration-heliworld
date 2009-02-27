@@ -6,7 +6,7 @@
 #include "IMU.h"
 #include "Vector3.h"
 
-#define TIMER_PERIOD 200
+#define TIMER_PERIOD 1 //We will poll the IMU every 1 milliseconds
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {

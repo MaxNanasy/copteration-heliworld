@@ -8,7 +8,7 @@ implementation {
   components AutopilotC, MainC;
   components new AMReceiverC (0), ActiveMessageC;
   components IMUC;
-  components new TimerMilliC () as AutopilotTimerC;
+  components new TimerMilliC () as AutopilotTimerC; //This timer will be used to help pull values from the IMU
   components new AlarmMicro32C();
   components Atm128SpiC;
   components Vector3C, floatC;
