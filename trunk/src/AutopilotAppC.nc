@@ -57,6 +57,7 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
+  IMUC.SpiResource -> Atm128SpiC;
   IMUC.SpiByte -> Atm128SpiC;
   
 }
