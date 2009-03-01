@@ -2,13 +2,20 @@
 module IMUC {
   provides {
     interface IMU;
+    interface Init;
   }
   uses {
     interface SpiByte;
+    interface Resource as SpiResource;
+    interface ChipSpiResource;
   }
 }
 
 implementation {
+
+  command error_t init() {
+    
+  }
 
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)
   {
@@ -28,5 +35,22 @@ implementation {
     readLow = call SpiByte.write (0);
     return (readHigh << 8) | readLow;
   }
+
+  event void granted() {
+     
+  }
+
+  event void releasing() { //the SPI bus is about to be automatically released
+
+  }
+
+  error_t acquireSpiResource() {
+    error_t error = call SpiResource.immediateRequest();
+    if ( error != SUCCESS ) {
+      call SpiResource.request();
+    }
+    return error;
+  }
+
 
 }
