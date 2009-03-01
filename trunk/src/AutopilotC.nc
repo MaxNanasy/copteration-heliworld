@@ -6,7 +6,7 @@
 #include "IMU.h"
 #include "Vector3.h"
 
-#define TIMER_PERIOD 1 //We will poll the IMU every 1 milliseconds
+#define TIMER_PERIOD 500 //We will poll the IMU every 1 milliseconds
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
@@ -16,7 +16,7 @@ module AutopilotC {
     interface Timer <TMilli> as MilliTimer;
     interface IMU;
     interface Motors;
-    interface StdControl as IMUControl;
+    interface SplitControl as IMUControl;
     interface PID <Vector3> as LinearPID;
     interface PID <float>   as YawPID   ;
     interface SplitControl as AMControl;
@@ -38,13 +38,13 @@ implementation {
 
   event void Boot.booted ()
   {
-    call Leds.led1On ();
     call AMControl.start ();
     call MotorsInit.init ();
     call Motors.setTopRotorPower (0.5);
     call Motors.setBottomRotorPower (0.25);
     call Motors.setPitchPower (0.5);
     call Motors.setRollPower (0.25);
+    call MilliTimer.startPeriodic (TIMER_PERIOD);
     //autopilotActive = FALSE;
     //targetPosition = zeroV3;
     //    targetYaw = 0;
@@ -59,11 +59,10 @@ implementation {
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     char directive = *(char*)payload;
-    call Leds.led1Toggle ();
+    //    call Leds.led1Toggle ();
     dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
     switch (directive) {
     case 'A':
-      call Leds.led2On ();
       if (! autopilotActive) {
 		call MilliTimer.startPeriodic (TIMER_PERIOD);
 	//	call MuxSelect.set ();
@@ -72,7 +71,6 @@ implementation {
       }
       break;
     case 'D':
-      call Leds.led2Off ();
       if (autopilotActive) {
 		call MilliTimer.stop ();
 		autopilotActive = FALSE;
@@ -87,7 +85,6 @@ implementation {
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
-      call Leds.led0On ();
     }
     else {
       call AMControl.start ();
@@ -96,32 +93,32 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-  #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); prevData.prev = data; if (data | (3 << 14)) return prevData; } while (0)
-  //Reads the data from the IMU and checks whether there is new data or not. If there is no new data then it returns the last read data.
-  DoubleVector3 readIMUData()
+  #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); if (data | (1 << 14)) return; LAandAV.prev = data; } while (0)
+  event void IMUControl.startDone (error_t)
   {
 
-    static DoubleVector3 prevData;
+    static int tick = 0;
+    static DoubleVector3 LAandAV;
     uint16_t data;
-    call IMU.readRegister(XACCL_OUT);
-   
+    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
+    DoubleVector3 positionAndOrientation;
+    float yawCorrection;
+
+    tick++;
+
+    call Leds.led1Toggle ();
+
+    /*    call IMU.readRegister(XACCL_OUT);
+
     CHECKDATA (a.x, YACCL_OUT);
     CHECKDATA (a.y, ZACCL_OUT);
     CHECKDATA (a.z, XGYRO_OUT);
     CHECKDATA (b.pitch, YGYRO_OUT);
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
-
-  }
-
-  event void MilliTimer.fired () {
-
-    call Leds.led0Toggle ();
-
-    /*    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
-    DoubleVector3 LAandAV = readIMUData (), positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, LAandAV.a, LAandAV.b);
-    float yawCorrection;
-
+    */
+    call IMUControl.stop ();
+    /*positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, LAandAV.a, LAandAV.b);
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
     dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
@@ -131,17 +128,27 @@ implementation {
     dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
     dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
     dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
-    
-    // T + B = z
-    // T - B = yaw
-    // -----------
-    // T = z + yaw
-    // B = z - yaw
-    call Motors.setTopRotorPower    (linearCorrection.z + yawCorrection);
-    call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
-    call Motors.setPitchPower       (linearCorrection.y                );
-    call Motors.setRollPower        (linearCorrection.x                );
     */
+    if (tick % 4 == 0) {
+      //      call Leds.led2Toggle ();
+      // T + B = z
+      // T - B = yaw
+      // -----------
+      // T = z + yaw
+      // B = z - yaw
+      //call Motors.setTopRotorPower    (linearCorrection.z + yawCorrection);
+      //call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
+      //call Motors.setPitchPower       (linearCorrection.y                );
+      //call Motors.setRollPower        (linearCorrection.x                );
     }
+
+  }
+
+  event void IMUControl.stopDone (error_t) { call Leds.led2Toggle (); };
+
+  event void MilliTimer.fired () {
+    call Leds.led0Toggle ();
+    call IMUControl.start ();
+  }
   
 }

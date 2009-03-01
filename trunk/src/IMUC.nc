@@ -2,7 +2,7 @@
 module IMUC {
   provides {
     interface IMU;
-    interface Init;
+    interface SplitControl;
   }
   uses {
     interface SpiByte;
@@ -13,9 +13,14 @@ module IMUC {
 
 implementation {
 
-  command error_t init() {
-    
+  error_t acquireSpiResource ();
+
+  command error_t SplitControl.start() {
+    acquireSpiResource ();
+    return SUCCESS;
   }
+
+  
 
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)
   {
@@ -36,21 +41,29 @@ implementation {
     return (readHigh << 8) | readLow;
   }
 
-  event void granted() {
-     
+  event void SpiResource.granted ()
+  {
+    signal SplitControl.startDone (SUCCESS);
   }
 
-  event void releasing() { //the SPI bus is about to be automatically released
+  command error_t SplitControl.stop ()
+  {
+    call SpiResource.release ();
+    signal SplitControl.stopDone (SUCCESS);
+    return SUCCESS;
+  }
+
+  async event void ChipSpiResource.releasing () //the SPI bus is about to be automatically released
+  {
 
   }
 
-  error_t acquireSpiResource() {
-    error_t error = call SpiResource.immediateRequest();
+  error_t acquireSpiResource () {
+    error_t error = call SpiResource.immediateRequest ();
     if ( error != SUCCESS ) {
-      call SpiResource.request();
+      call SpiResource.request ();
     }
     return error;
   }
-
 
 }

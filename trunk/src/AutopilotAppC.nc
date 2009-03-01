@@ -21,6 +21,7 @@ implementation {
   components HPLT1pwmC, HPLT3pwmC;
   //GPIO Pins for mux control
   components HplAtm128GeneralIOC as GPIOPins;
+  components new CC2420SpiC ();
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -31,6 +32,7 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
+  AutopilotC.IMUControl -> IMUC;
   AutopilotC.Motors -> MotorsC.Motors;
   AutopilotC.Leds -> LedsC;
   AutopilotC.MotorsInit -> MotorsC.Init;
@@ -57,7 +59,8 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
-  IMUC.SpiResource -> Atm128SpiC;
+  IMUC.SpiResource -> Atm128SpiC.Resource[0];
+  IMUC.ChipSpiResource -> CC2420SpiC;
   IMUC.SpiByte -> Atm128SpiC;
-  
+
 }
