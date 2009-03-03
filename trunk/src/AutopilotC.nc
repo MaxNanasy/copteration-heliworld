@@ -1,12 +1,12 @@
-/* Yellow        : Autopilot is active.
-   Green (Toggle): A message has been received.
-   Red   (Toggle): A timer period has elapsed while the autopilot was active.
+/* Yellow (Toggle): The SPI bus has been released.
+   Green  (Toggle): The SPI bus has been acquired.
+   Red    (Toggle): A timer period has elapsed.
 */
 
 #include "IMU.h"
 #include "Vector3.h"
 
-#define TIMER_PERIOD 500 //We will poll the IMU every 1 milliseconds
+#define TIMER_PERIOD 2000 //We will poll the IMU every 1 milliseconds
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
@@ -20,6 +20,8 @@ module AutopilotC {
     interface PID <Vector3> as LinearPID;
     interface PID <float>   as YawPID   ;
     interface SplitControl as AMControl;
+    interface AMSend;
+    interface Packet;
     interface DeadReckoning;
     // 0: pass-through
     // 1: autopilot
@@ -59,9 +61,8 @@ implementation {
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     char directive = *(char*)payload;
-    //    call Leds.led1Toggle ();
     dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
-    switch (directive) {
+    /*  switch (directive) {
     case 'A':
       if (! autopilotActive) {
 		call MilliTimer.startPeriodic (TIMER_PERIOD);
@@ -79,9 +80,11 @@ implementation {
       break;
     default:
       dbg ("Autopilot", "Junk directive: &c\n", directive);
-    }
+      }*/
     return bufPtr;
   }
+
+  event void AMSend.sendDone (message_t *bufPtr, error_t error) { call Leds.led2On (); }
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
@@ -103,10 +106,12 @@ implementation {
     Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
     DoubleVector3 positionAndOrientation;
     float yawCorrection;
+    message_t activateP;
 
     tick++;
 
-    call Leds.led1Toggle ();
+    *(char*)(call Packet.getPayload (&activateP, 1)) = 'A';
+    call AMSend.send (AM_BROADCAST_ADDR, &activateP, 1);
 
     /*    call IMU.readRegister(XACCL_OUT);
 
@@ -117,7 +122,7 @@ implementation {
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
     */
-    call IMUControl.stop ();
+    //    call IMUControl.stop ();
     /*positionAndOrientation = call DeadReckoning.updateReckoning (TIMER_PERIOD, LAandAV.a, LAandAV.b);
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
@@ -130,7 +135,6 @@ implementation {
     dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
     */
     if (tick % 4 == 0) {
-      //      call Leds.led2Toggle ();
       // T + B = z
       // T - B = yaw
       // -----------
@@ -144,11 +148,18 @@ implementation {
 
   }
 
-  event void IMUControl.stopDone (error_t) { call Leds.led2Toggle (); };
+  event void IMUControl.stopDone (error_t e)
+  {
+    /*    switch (e) {
+    case SUCCESS:
+      break;
+    case FAIL:
+      break;
+      } */
+  }
 
   event void MilliTimer.fired () {
-    call Leds.led0Toggle ();
     call IMUControl.start ();
   }
-  
+
 }

@@ -4,8 +4,7 @@ configuration RemoteAppC {
 implementation {
 
   components RemoteC, MainC;
-  // This line causes an error for me when I compile for sim, but does not complain when I compile for the mote.
-  components HplCC2420InterruptsC;
+  components HplCC2420InterruptsC; // This line causes an error for me when I compile for sim, but not when I compile for the mote.
   components new AMSenderC (0), ActiveMessageC;
 
   RemoteC.Boot -> MainC;

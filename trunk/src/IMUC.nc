@@ -8,19 +8,31 @@ module IMUC {
     interface SpiByte;
     interface Resource as SpiResource;
     interface ChipSpiResource;
+    interface Leds;
   }
 }
 
 implementation {
 
   error_t acquireSpiResource ();
+  void wasGranted ();
 
   command error_t SplitControl.start() {
-    acquireSpiResource ();
+    switch (acquireSpiResource ()) {
+    case SUCCESS:
+      if (call SpiResource.isOwner ()) {
+	call Leds.led1Toggle ();
+	wasGranted ();
+      }
+      break;
+    case FAIL:
+      call Leds.led2Toggle ();
+      break;
+    case EBUSY:
+      break;
+    }
     return SUCCESS;
   }
-
-  
 
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)
   {
@@ -41,27 +53,32 @@ implementation {
     return (readHigh << 8) | readLow;
   }
 
-  event void SpiResource.granted ()
+  void wasGranted ()
   {
     signal SplitControl.startDone (SUCCESS);
   }
 
+  event void SpiResource.granted ()
+  {
+    wasGranted ();
+  }
+
   command error_t SplitControl.stop ()
   {
-    call SpiResource.release ();
-    signal SplitControl.stopDone (SUCCESS);
+    signal SplitControl.stopDone (call SpiResource.release ());
     return SUCCESS;
   }
 
   async event void ChipSpiResource.releasing () //the SPI bus is about to be automatically released
   {
-
   }
 
   error_t acquireSpiResource () {
-    error_t error = call SpiResource.immediateRequest ();
+    error_t error = call SpiResource.immediateRequest (), newError;
     if ( error != SUCCESS ) {
-      call SpiResource.request ();
+      newError = call SpiResource.request ();
+      if (newError != SUCCESS)
+	error = newError;
     }
     return error;
   }

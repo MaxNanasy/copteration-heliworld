@@ -6,7 +6,7 @@ configuration AutopilotAppC {
 implementation {
 
   components AutopilotC, MainC;
-  components new AMReceiverC (0), ActiveMessageC;
+  components new AMReceiverC (0), new AMSenderC (0), ActiveMessageC;
   components IMUC;
   components new TimerMilliC () as AutopilotTimerC; //This timer will be used to help pull values from the IMU
   components new AlarmMicro32C();
@@ -21,7 +21,9 @@ implementation {
   components HPLT1pwmC, HPLT3pwmC;
   //GPIO Pins for mux control
   components HplAtm128GeneralIOC as GPIOPins;
-  components new CC2420SpiC ();
+  components new CC2420SpiC (), new HplCC2420SpiC ();
+  components CC2420SpiP;
+  components CC2420SpiWireC;
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -39,6 +41,8 @@ implementation {
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
   //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
   AutopilotC.MuxSelect -> GPIOPins.PortC4;
+  AutopilotC.AMSend -> AMSenderC;
+  AutopilotC.Packet -> AMSenderC;
 
   MotorsC.RotorPWM -> HPLT1pwmC;
   MotorsC. TiltPWM -> HPLT3pwmC;
@@ -59,8 +63,11 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
-  IMUC.SpiResource -> Atm128SpiC.Resource[0];
+  enum { MAX_ID = unique ("Max.Resource") };
+
+  IMUC.SpiResource -> CC2420SpiP.Resource [6]; //Atm128SpiC.Resource[unique ("AutoAppC")];
   IMUC.ChipSpiResource -> CC2420SpiC;
   IMUC.SpiByte -> Atm128SpiC;
+  IMUC.Leds -> LedsC;
 
 }
