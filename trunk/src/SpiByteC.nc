@@ -1,4 +1,4 @@
-module SpiByteC
+generic module SpiByteC (uint16_t period)
 {
   provides {
     interface SPIByte;
@@ -9,6 +9,7 @@ module SpiByteC
     interface GeneralIO as MISO;
     interface GeneralIO as MOSI;
     interface GeneralIO as SS;
+    interface BusyWait <TMicro, uint16_t>
   }
 }
 
@@ -33,6 +34,11 @@ implementation
   {
     call SS.set ();
     return SUCCESS;
+  }
+
+  void delay ()
+  {
+    BusyWait.wait (period / 2);
   }
 
   // Code from http://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus#Example_of_bit-banging_the_SPI_Master_protocol

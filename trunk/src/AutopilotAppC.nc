@@ -1,5 +1,7 @@
 #include "Vector3.h"
 
+#define SPI_PERIOD 40
+
 configuration AutopilotAppC {
 }
 
@@ -9,8 +11,8 @@ implementation {
   components new AMReceiverC (0), new AMSenderC (0), ActiveMessageC;
   components IMUC;
   components new TimerMilliC () as AutopilotTimerC; //This timer will be used to help pull values from the IMU
-  components new AlarmMicro32C();
-  components Atm128SpiC;
+  components BusyWaitMicroC;
+  components new SpiByteC (40);
   components Vector3C, floatC;
   components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
@@ -59,6 +61,12 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
-  IMUC.SpiByte -> Atm128SpiC;
+  IMUC.SpiByte -> SpiByteC;
+
+  SpiByteC.SCLK -> GPIOPins.PortC0;
+  SpiByteC.MISO -> GPIOPins.PortC1;
+  SpiByteC.MOSI -> GPIOPins.PortC2;
+  SpiByteC.SS   -> GPIOPins.PortC3;
+  SpiByteC.BusyWait -> BusyWaitMicroC;
 
 }
