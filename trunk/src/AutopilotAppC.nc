@@ -23,6 +23,10 @@ implementation {
   components HPLT1pwmC, HPLT3pwmC;
   //GPIO Pins for mux control
   components HplAtm128GeneralIOC as GPIOPins;
+  components InvertIOC as InvC0,
+             InvertIOC as InvC1,
+             InvertIOC as InvC2,
+             InvertIOC as InvC3;
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -63,10 +67,15 @@ implementation {
 
   IMUC.SpiByte -> SpiByteC;
 
-  SpiByteC.SCLK -> GPIOPins.PortC0;
-  SpiByteC.MISO -> GPIOPins.PortC1;
-  SpiByteC.MOSI -> GPIOPins.PortC2;
-  SpiByteC.SS   -> GPIOPins.PortC3;
+  InvC0.NormalIO -> GPIOPins.PortC0;
+  InvC1.NormalIO -> GPIOPins.PortC1;
+  InvC2.NormalIO -> GPIOPins.PortC2;
+  InvC3.NormalIO -> GPIOPins.PortC3;
+
+  SpiByteC.SCLK -> InvC0;
+  SpiByteC.MISO -> InvC1;
+  SpiByteC.MOSI -> InvC2;
+  SpiByteC.SS   -> InvC3;
   SpiByteC.BusyWait -> BusyWaitMicroC;
 
 }
