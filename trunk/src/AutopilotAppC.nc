@@ -12,7 +12,7 @@ implementation {
   components IMUC;
   components new TimerMilliC () as AutopilotTimerC; //This timer will be used to help pull values from the IMU
   components BusyWaitMicroC;
-  components new SpiByteC (40);
+  components new SpiByteC (40000);
   components Vector3C, floatC;
   components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
@@ -25,8 +25,7 @@ implementation {
   components HplAtm128GeneralIOC as GPIOPins;
   components InvertIOC as InvC0,
              InvertIOC as InvC1,
-             InvertIOC as InvC2,
-             InvertIOC as InvC3;
+             InvertIOC as InvC2;
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -68,14 +67,13 @@ implementation {
   IMUC.SpiByte -> SpiByteC;
 
   InvC0.NormalIO -> GPIOPins.PortC0;
-  InvC1.NormalIO -> GPIOPins.PortC1;
-  InvC2.NormalIO -> GPIOPins.PortC2;
-  InvC3.NormalIO -> GPIOPins.PortC3;
+  InvC1.NormalIO -> GPIOPins.PortC2;
+  InvC2.NormalIO -> GPIOPins.PortC3;
 
   SpiByteC.SCLK -> InvC0;
-  SpiByteC.MISO -> InvC1;
-  SpiByteC.MOSI -> InvC2;
-  SpiByteC.SS   -> InvC3;
+  SpiByteC.MISO -> GPIOPins.PortC1;
+  SpiByteC.MOSI -> InvC1;
+  SpiByteC.SS   -> InvC2;
   SpiByteC.BusyWait -> BusyWaitMicroC;
 
 }

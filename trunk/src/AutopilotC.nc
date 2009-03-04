@@ -36,6 +36,8 @@ implementation {
   event void Boot.booted ()
   {
 
+    int i;
+
     call MuxSelect.clr ();
 
     call Leds.led0On ();
@@ -51,6 +53,12 @@ implementation {
     call YawPID.initialize    (1, 1, 1, 0     , 0     );
     call DeadReckoning.initialize (zeroV3, zeroV3);
     call AMControl.start ();
+
+    for (i = 0;; i++) {
+      if (i % 6)
+	call Leds.led1Toggle ();
+      call IMU.readRegister (YACCL_OUT);
+    }
 
   }
 

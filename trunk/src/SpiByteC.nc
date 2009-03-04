@@ -1,15 +1,15 @@
 generic module SpiByteC (uint16_t period)
 {
   provides {
-    interface SPIByte;
+    interface SpiByte;
     interface StdControl;
   }
   uses {
     interface GeneralIO as SCLK;
     interface GeneralIO as MISO;
     interface GeneralIO as MOSI;
-    interface GeneralIO as SS;
-    interface BusyWait <TMicro, uint16_t>
+    interface GeneralIO as SS  ;
+    interface BusyWait <TMicro, uint16_t>;
   }
 }
 
@@ -36,13 +36,13 @@ implementation
     return SUCCESS;
   }
 
-  void delay ()
+  inline void delay ()
   {
-    BusyWait.wait (period / 2);
+    call BusyWait.wait (period / 2);
   }
 
   // Code from http://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus#Example_of_bit-banging_the_SPI_Master_protocol
-  command uint8_t write (uint8_t x)
+  async command uint8_t SpiByte.write (uint8_t x)
   {
 
     uint8_t bit;
@@ -56,11 +56,15 @@ implementation
       x <<= 1;
 
       delay ();
-      SCLK.set ();
+      call SCLK.set ();
       delay ();
 
-      x |= MISO.get ();
-      SCLK.clear ();
+      x |= call MISO.get ();
+      call SCLK.clr ();
+
+    }
+
+    return x;
 
   }
 

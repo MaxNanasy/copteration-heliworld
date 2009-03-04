@@ -1,17 +1,17 @@
-component InvertIOC
+module InvertIOC
 {
-  uses     interface GeneralIO as NormalIO  ;
-  provides interface GeneralIO as InvertedIO;
+  uses     { interface GeneralIO as NormalIO  ; }
+  provides { interface GeneralIO as InvertedIO; }
 }
 
 implementation
 {
-  command void InvertedIO.clr        () { NormalIO.set             (); }
-  command bool InvertedIO.get        () { return ~ NormalIO.get    (); }
-  command bool InvertedIO.isInput    () { return NormalIO.isInput  (); }
-  command bool InvertedIO.isOutput   () { return NormalIO.isOutput (); }
-  command void InvertedIO.makeInput  () { NormalIO.makeInput       (); }
-  command void InvertedIO.makeOutput () { NormalIO.makeOutput      (); }
-  command void InvertedIO.set        () { NormalIO.clr             (); }
-  command void InvertedIO.toggle     () { NormalIO.toggle          (); }
+  async command void InvertedIO.clr        () { call NormalIO.set             (); }
+  async command bool InvertedIO.get        () { return ~ call NormalIO.get    (); }
+  async command bool InvertedIO.isInput    () { return call NormalIO.isInput  (); }
+  async command bool InvertedIO.isOutput   () { return call NormalIO.isOutput (); }
+  async command void InvertedIO.makeInput  () { call NormalIO.makeInput       (); }
+  async command void InvertedIO.makeOutput () { call NormalIO.makeOutput      (); }
+  async command void InvertedIO.set        () { call NormalIO.clr             (); }
+  async command void InvertedIO.toggle     () { call NormalIO.toggle          (); }
 }
