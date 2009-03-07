@@ -2,44 +2,37 @@
 module IMUC {
   provides {
     interface IMU;
+    interface Init;
   }
   uses {
-    interface SpiByte;
-    //    interface StdControl as SpiControl;
+    interface Spi2Byte;
+    interface Init as Spi2Init;
+    interface GeneralIO as Reset;
+    interface BusyWait <TMicro, uint16_t>;
   }
 }
 
 implementation {
 
+  command error_t Init.init ()
+  {
+    call Spi2Init.init ();
+    call Reset.set ();
+    call BusyWait.wait (40);
+    call Reset.clr ();
+  }
+
   async command uint16_t IMU.writeRegister (uint8_t registr, uint8_t value)
   {
-    uint8_t readHigh, readLow;
-
-    //    call SpiControl.start ();
-
+    
     // When writing a register, the first bit in the write request must be high.
-    readHigh = call SpiByte.write ((1 << 7) | registr);
-    readLow  = call SpiByte.write (value);
-
-    //    call SpiControl.stop ();
-
-    return (readHigh << 8) | readLow;
+    return call Spi2Byte.write ((1 << 15) | registr << 8 | value);
   }
 
   async command uint16_t IMU.readRegister (uint8_t registr)
   {
-    uint8_t readHigh, readLow;
-
-    //    call SpiControl.start ();
-
     // When reading a register, the first bit in the read request must be low.
-    readHigh = call SpiByte.write (registr);
-    // The byte written at this point is ignored by the IMU.
-    readLow = call SpiByte.write (0);
-
-    //    call SpiControl.stop ();
-
-    return (readHigh << 8) | readLow;
+    return call Spi2Byte.write (registr << 8);
   }
 
 }

@@ -1,7 +1,7 @@
 generic module SpiByteC (uint16_t period)
 {
   provides {
-    interface SpiByte;
+    interface Spi2Byte;
     interface StdControl;
   }
   uses {
@@ -24,7 +24,8 @@ implementation
     call MOSI.makeOutput ();
     call SS  .makeOutput ();
 
-    call SS.clr ();
+    call SCLK.set ();
+    call SS  .clr ();
 
     return SUCCESS;
 
@@ -42,12 +43,12 @@ implementation
   }
 
   // Code from http://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus#Example_of_bit-banging_the_SPI_Master_protocol
-  async command uint8_t SpiByte.write (uint8_t x)
+  async command uint16_t Spi2Byte.write (uint16_t x)
   {
 
-    uint8_t bit;
+    uint16_t bit;
 
-    for (bit = 0; bit < 8; bit++) {
+    for (bit = 0; bit < 16; bit++) {
 
       if (x & 0x80)
 	call MOSI.set ();
@@ -56,11 +57,11 @@ implementation
       x <<= 1;
 
       delay ();
-      call SCLK.set ();
+      call SCLK.toggle ();
       delay ();
 
       x |= call MISO.get ();
-      call SCLK.clr ();
+      call SCLK.toggle ();
 
     }
 
@@ -69,3 +70,27 @@ implementation
   }
 
 }
+
+
+ss is high.
+
+set ss low
+
+delay
+
+write bit
+set clock low
+
+delay
+
+set clock high
+read bit
+
+delay 
+
+set clock low
+write bit
+
+delay
+
+set clock high...

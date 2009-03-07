@@ -1,6 +1,6 @@
 #include "Vector3.h"
 
-#define SPI_PERIOD 40
+#define SPI_PERIOD 400
 
 configuration AutopilotAppC {
 }
@@ -12,7 +12,7 @@ implementation {
   components IMUC;
   components new TimerMilliC () as AutopilotTimerC; //This timer will be used to help pull values from the IMU
   components BusyWaitMicroC;
-  components new SpiByteC (40000);
+  components new Spi2ByteC (SPI_PERIOD);
   components Vector3C, floatC;
   components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
@@ -36,6 +36,7 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
+  AutopilotC.IMUInit -> IMUC;
   AutopilotC.Motors -> MotorsC.Motors;
   AutopilotC.Leds -> LedsC;
   AutopilotC.MotorsInit -> MotorsC.Init;
@@ -44,6 +45,7 @@ implementation {
   AutopilotC.MuxSelect -> GPIOPins.PortC4;
   AutopilotC.AMSend -> AMSenderC;
   AutopilotC.Packet -> AMSenderC;
+  AutopilotC.BusyWait -> BusyWaitMicroC;
 
   MotorsC.RotorPWM -> HPLT1pwmC;
   MotorsC. TiltPWM -> HPLT3pwmC;
@@ -64,16 +66,19 @@ implementation {
   LVtoLPIntegratorC.Additive -> Vector3C;
   AVtoOIntegratorC .Additive -> Vector3C;
 
-  IMUC.SpiByte -> SpiByteC;
+  IMUC.Spi2Byte -> Spi2ByteC;
+  IMUC.Spi2Init -> Spi2ByteC;
+  IMUC.Reset -> GPIOPins.PortC4; // PW4
+  IMUC.BusyWait -> BusyWaitMicroC;
 
-  InvC0.NormalIO -> GPIOPins.PortC0;
+  /*  InvC0.NormalIO -> GPIOPins.PortC0;
   InvC1.NormalIO -> GPIOPins.PortC2;
-  InvC2.NormalIO -> GPIOPins.PortC3;
+  InvC2.NormalIO -> GPIOPins.PortC3; */
 
-  SpiByteC.SCLK -> InvC0;
-  SpiByteC.MISO -> GPIOPins.PortC1;
-  SpiByteC.MOSI -> InvC1;
-  SpiByteC.SS   -> InvC2;
-  SpiByteC.BusyWait -> BusyWaitMicroC;
+  Spi2ByteC.SCLK -> GPIOPins.PortC0; // PW0
+  Spi2ByteC.MISO -> GPIOPins.PortC1; // PW1
+  Spi2ByteC.MOSI -> GPIOPins.PortC2; // PW2
+  Spi2ByteC.SS   -> GPIOPins.PortC3; // PW3
+  Spi2ByteC.BusyWait -> BusyWaitMicroC;
 
 }
