@@ -38,11 +38,9 @@ implementation {
   event void Boot.booted ()
   {
 
-    int16_t xaccl;
+    int16_t accl;
 
     call MuxSelect.clr ();
-
-    call Leds.led0On ();
 
     call MotorsInit.init ();
 
@@ -57,16 +55,16 @@ implementation {
     call AMControl.start ();
     call IMUInit.init ();
 
-    call IMU.readRegister (XACCL_OUT);
+    call IMU.readRegister (YACCL_OUT);
 
     for (;;) {
-      xaccl = call IMU.readRegister (XACCL_OUT) << 2;
-      if      (xaccl >= 4 *  200)
-	call Leds.set (1);
-      else if (xaccl <= 4 * -200)
-	call Leds.set (4);
+      accl = call IMU.readRegister (YACCL_OUT) << 2;
+      if      (accl >= 4 *  535)
+	call Leds.set (1); // 001
+      else if (accl <= 4 * -535)
+	call Leds.set (4); // 100
       else
-	call Leds.set (2);
+	call Leds.set (2); // 010
     }
 
   }

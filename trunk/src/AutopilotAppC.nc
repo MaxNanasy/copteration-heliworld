@@ -1,6 +1,5 @@
 #include "Vector3.h"
-
-#define SPI_PERIOD 400
+#include "Spi.h"
 
 configuration AutopilotAppC {
 }

@@ -22,7 +22,10 @@
 #define    AUX_ADC 0x16
 
 // Scale factors
-#define ACCL_SCALE 2.522   // 2.522 mg
-#define GYRO_SCALE  .07326 // .07326 degrees / s
+#define ACCL_SCALE .4672  // .4672 mg
+#define GYRO_SCALE .07326 // .07326 degrees / s
+
+#define DATARATE  42
+#define DATASTALL 12
 
 #endif
