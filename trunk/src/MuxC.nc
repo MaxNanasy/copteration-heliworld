@@ -1,4 +1,4 @@
-component MuxC {
+module MuxC {
   provides {
     interface StdControl;
     interface Init;
@@ -28,7 +28,7 @@ implementation {
   command error_t StdControl.stop ()
   {
     call MoteBuffer.set ();
-    call PassThroughBuffer.clr ();
+    call PassthroughBuffer.clr ();
     return SUCCESS;
   }
   

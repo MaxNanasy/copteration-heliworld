@@ -35,14 +35,13 @@ implementation {
     
     call AMControl.start(); 
   }
-}
 
 void stabilize ()
 {
-  Motors.setTopRotorPower (STABLE_ROTOR_POWER);
-  Motors.setBottomRotorPower (STABLE_ROTOR_POWER);
-  Motors.setPitchPower (STABLE_PITCH_POWER);
-  Motors.setRollPower (STABLE_ROLL_POWER);
+  call Motors.setTopRotorPower (STABLE_ROTOR_POWER);
+  call Motors.setBottomRotorPower (STABLE_ROTOR_POWER);
+  call Motors.setPitchPower (STABLE_PITCH_POWER);
+  call Motors.setRollPower (STABLE_ROLL_POWER);
 }
 
 event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len) {
@@ -53,7 +52,7 @@ event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   if (fallbackActive)
     switch (dir) {
       case DEACTIVATE:
-        call MuxSelect.stop ();
+        call MuxControl.stop ();
         fallbackActive = FALSE;
         break;
       case LEFT:
@@ -78,6 +77,17 @@ event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
       call MuxControl.start ();
       fallbackActive = TRUE;
       break;
-  }
+    default:
+}
   return bufPtr;
 }
+
+event void AMControl.startDone (error_t err)
+{
+  if (err != SUCCESS) call AMControl.start ();
+}
+
+event void AMControl.stopDone (error_t err) { }
+
+}
+
