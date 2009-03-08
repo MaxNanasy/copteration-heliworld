@@ -20,7 +20,7 @@ implementation {
   components MotorsC;
   components LedsC;
   components HPLT1pwmC, HPLT3pwmC;
-  //GPIO Pins for mux control
+  //GPIO Pins for mux control & SPI
   components HplAtm128GeneralIOC as GPIOPins;
   components InvertIOC as InvC0,
              InvertIOC as InvC1,
