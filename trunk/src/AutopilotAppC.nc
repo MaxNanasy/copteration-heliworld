@@ -35,7 +35,8 @@ implementation {
   AutopilotC.AMControl -> ActiveMessageC;
   AutopilotC.MilliTimer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
-  AutopilotC.IMUInit -> IMUC;
+  AutopilotC.IMUControl -> IMUC;
+  AutopilotC.Spi2Byte -> Spi2ByteC;
   AutopilotC.Motors -> MotorsC.Motors;
   AutopilotC.Leds -> LedsC;
   AutopilotC.MotorsInit -> MotorsC.Init;

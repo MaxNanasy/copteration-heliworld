@@ -6,7 +6,7 @@
 module IMUC {
   provides {
     interface IMU;
-    interface Init;
+    interface StdControl;
   }
   uses {
     interface Spi2Byte;
@@ -18,12 +18,19 @@ module IMUC {
 
 implementation {
 
-  command error_t Init.init ()
+  command error_t StdControl.start ()
   {
     call Spi2Init.init ();
     call Reset.clr ();
     call BusyWait.wait (1000);
     call Reset.set ();
+    return SUCCESS;
+  }
+
+  command error_t StdControl.stop ()
+  {
+    call Reset.clr ();
+    return SUCCESS;
   }
 
   void afterFrameDelay ()

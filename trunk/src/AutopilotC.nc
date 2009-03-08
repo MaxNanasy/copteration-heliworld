@@ -11,7 +11,7 @@ module AutopilotC {
     interface Receive;
     interface Timer <TMilli> as MilliTimer;
     interface IMU;
-    interface Init as IMUInit;
+    interface StdControl as IMUControl;
     interface Motors;
     interface Init as MotorsInit;
     interface PID <Vector3> as LinearPID;
@@ -25,6 +25,7 @@ module AutopilotC {
     interface GeneralIO as MuxSelect;
     interface Leds;
     interface BusyWait <TMicro, uint16_t>;
+    interface Spi2Byte;
   }
 }
 
@@ -37,6 +38,8 @@ implementation {
 
   event void Boot.booted ()
   {
+
+    uint8_t i, j;
 
     int16_t accl;
 
@@ -53,18 +56,27 @@ implementation {
     call YawPID.initialize    (1, 1, 1, 0     , 0     );
     call DeadReckoning.initialize (zeroV3, zeroV3);
     call AMControl.start ();
-    call IMUInit.init ();
 
     call IMU.readRegister (YACCL_OUT);
 
-    for (;;) {
-      accl = call IMU.readRegister (YACCL_OUT) << 2;
+    for (i = 0;; i++) {
+      //      call IMUControl.start ();
+      //      call Spi2Byte.write (0xFFFF);
+      call Leds.set (i);
+      for (j = 0; j < 10; j ++)
+	call BusyWait.wait (50000);
+      //      call Spi2Byte.write (0x0000);
+      //      call IMUControl.stop ();
+      call Leds.set (++i);
+      for (j = 0; j < 10; j ++)
+	call BusyWait.wait (50000);
+      /*      accl = call IMU.readRegister (YACCL_OUT) << 2;
       if      (accl >= 4 *  535)
 	call Leds.set (1); // 001
       else if (accl <= 4 * -535)
 	call Leds.set (4); // 100
       else
-	call Leds.set (2); // 010
+      call Leds.set (2); // 010 */
     }
 
   }
