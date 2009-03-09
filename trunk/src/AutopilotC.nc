@@ -55,16 +55,15 @@ implementation {
     call DeadReckoning.initialize (zeroV3, zeroV3);
     call AMControl.start ();
 
-    call IMU.readRegister (YACCL_OUT);
-
     call IMUControl.start ();
 
+    call IMU.readRegister (YACCL_OUT);
+
     for (;;) {
-      call BusyWait.wait (IMU_PERIOD * 1000);
       accl = call IMU.readRegister (YACCL_OUT) << 2;
-      if      (accl >= 4 *  535)
+      if      (accl >= 4 *  200) //  535)
 	call Leds.set (1); // 001
-      else if (accl <= 4 * -535)
+      else if (accl <= 4 * -200) // -535)
 	call Leds.set (4); // 100
       else
         call Leds.set (2); // 010

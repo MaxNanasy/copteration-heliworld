@@ -54,12 +54,11 @@ implementation
       x <<= 1;
 
       call SCLK.clr ();
-
       delay ();
 
       x |= call MISO.get ();
-      call SCLK.set ();
 
+      call SCLK.set ();
       delay ();
 
     }
