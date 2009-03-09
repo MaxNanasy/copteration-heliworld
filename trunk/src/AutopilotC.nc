@@ -80,14 +80,14 @@ implementation {
     case 'A':
       if (! autopilotActive) {
         call MilliTimer.startPeriodic (IMU_PERIOD);
-	call MuxControl.start ();
-	autopilotActive = TRUE;
-	dbg ("Autopilot", "Autopilot activated\n");
+	    call MuxControl.start ();
+        autopilotActive = TRUE;
+        dbg ("Autopilot", "Autopilot activated\n");
       }
       break;
     case 'D':
       if (autopilotActive) {
-	call MuxControl.stop ();
+        call MuxControl.stop ();
         call MilliTimer.stop ();
         autopilotActive = FALSE;
         dbg ("Autopilot", "Autopilot deactivated\n");
