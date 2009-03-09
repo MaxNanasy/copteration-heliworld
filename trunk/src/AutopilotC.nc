@@ -110,7 +110,7 @@ implementation {
     DoubleVector3 positionAndOrientation;
     float yawCorrection;
 
-    uint16_t accl;
+    int16_t accl;
 
     tick++;
 
