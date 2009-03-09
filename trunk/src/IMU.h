@@ -26,6 +26,6 @@
 #define GYRO_SCALE .07326 // .07326 degrees / s
 
 #define DATARATE  42
-#define DATASTALL 12
+#define DATASTALL 10
 
 #endif

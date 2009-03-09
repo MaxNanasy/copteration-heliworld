@@ -1,8 +1,8 @@
 #include "IMU.h"
 #include "Vector3.h"
 
-#define   IMU_PERIOD 5 // Poll   the IMU    every  IMU_PERIOD                 ms.
-#define MOTOR_PERIOD 4 // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
+#define   IMU_PERIOD 4 // Poll   the IMU    every  IMU_PERIOD                 ms.
+#define MOTOR_PERIOD 5 // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
@@ -60,23 +60,16 @@ implementation {
     call IMU.readRegister (YACCL_OUT);
 
     for (i = 0;; i++) {
-      //      call IMUControl.start ();
-      //      call Spi2Byte.write (0xFFFF);
-      call Leds.set (i);
-      for (j = 0; j < 10; j ++)
-	call BusyWait.wait (50000);
-      //      call Spi2Byte.write (0x0000);
-      //      call IMUControl.stop ();
-      call Leds.set (++i);
-      for (j = 0; j < 10; j ++)
-	call BusyWait.wait (50000);
-      /*      accl = call IMU.readRegister (YACCL_OUT) << 2;
+      call BusyWait.wait (IMU_PERIOD * 1000);
+      call IMUControl.start ();
+      accl = call IMU.readRegister (YACCL_OUT) << 2;
+	  call IMUControl.stop  ();
       if      (accl >= 4 *  535)
-	call Leds.set (1); // 001
-      else if (accl <= 4 * -535)
-	call Leds.set (4); // 100
-      else
-      call Leds.set (2); // 010 */
+	  call Leds.set (1); // 001
+        else if (accl <= 4 * -535)
+	  call Leds.set (4); // 100
+        else
+      call Leds.set (2); // 010 
     }
 
   }

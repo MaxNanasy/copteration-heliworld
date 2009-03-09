@@ -58,7 +58,7 @@ implementation
       delay ();
 
       x |= call MISO.get ();
-      call SCLK.toggle ();
+      call SCLK.set ();
 
       delay ();
 
