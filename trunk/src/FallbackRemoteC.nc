@@ -1,35 +1,32 @@
 #include "directive.h"
 
+#define PERIOD 1
+
 module FallbackRemoteC {
 uses {
   interface Boot;
   interface AMSend;
   interface Packet;
   interface SplitControl as AMControl;
-  interface GeneralIO as ActiveSwitch;
-  interface GeneralIO as LeftSwitch;
-  interface GeneralIO as RightSwitch;
+  interface GeneralIO as ActivateSwitch;
+  interface GeneralIO as LeftSwitch    ;
+  interface GeneralIO as RightSwitch   ;
+  interface Timer <TMilli>;
  }
 }
 
-
 implementation{
 
-  bool activateFallback;
-  message_t activateP, deactivateP, leftP, rightP, fowardP, backwardP, upP, downP, stabilizeP;
-
   event void Boot.booted()  {
-    activateFallback = TRUE;
+
     call AMControl.start();
-    *(uint8_t*)(call Packet.getPayload (&activateP  , sizeof (directive))) = ACTIVATE;
-    *(uint8_t*)(call Packet.getPayload (&deactivateP, sizeof (directive))) = DEACTIVATE;
-    *(uint8_t*)(call Packet.getPayload (&leftP      , sizeof (directive))) = LEFT;
-    *(uint8_t*)(call Packet.getPayload (&rightP     , sizeof (directive))) = RIGHT;
-    *(uint8_t*)(call Packet.getPayload (&forwardP   , sizeof (directive))) = FORWARD;
-    *(uint8_t*)(call Packet.getPayload (&backwardP  , sizeof (directive))) = BACKWARD;
-    *(uint8_t*)(call Packet.getPayload (&upP        , sizeof (directive))) = UP;
-    *(uint8_t*)(call Packet.getPayload (&downP      , sizeof (directive))) = DOWN;
-    *(uint8_t*)(call Packet.getPayload (&stabilizeP , sizeof (directive))) = STABILIZE;
+
+    call ActivateSwitch.makeInput ();
+    call LeftSwitch    .makeInput ();
+    call RightSwitch   .makeInput ();
+
+    call Timer.startPeriodic (PERIOD);
+
   }
 
   event void AMSend.sendDone(message_t *bufPtr, error_t error)
@@ -43,5 +40,32 @@ implementation{
 
   event void AMControl.stopDone (error_t err) { }
 
+  void send (directive dir)
+  {
+    message_t packet;
+    *(directive*)(call Packet.getPayload (&packet, sizeof (directive))) = dir;
+    call AMSend.send (AM_BROADCAST_ADDR, &packet, sizeof (directive));
+  }
+
+  event void Timer.fired ()
+  {
+
+    static bool activateFallback = TRUE, activeSwitchPressed = FALSE;
+
+    if      (call ActivateSwitch.get ()) {
+      activeSwitchPressed = TRUE;
+      send (activateFallback ? ACTIVATE : DEACTIVATE);
+    }
+    else if (call LeftSwitch    .get ()) send (LEFT );
+    else if (call RightSwitch   .get ()) send (RIGHT);
+    else {
+      send (STABILIZE);
+      if (activeSwitchPressed) {
+        activeSwitchPressed = FALSE;
+        activateFallback = ! activateFallback;
+      }
+    }
+
+  }
 
 }

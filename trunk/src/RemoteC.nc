@@ -1,3 +1,10 @@
+#define PERIOD 1
+
+/* Yellow: Button is being pressed.
+   Green : Autopilot is about to be activated.
+   Red   : Autopilot has just been activated.
+*/
+
 // Provides a program for the mote that, when a button is pressed, signals the autopilot to begin.
 module RemoteC {
   uses {
@@ -5,7 +12,9 @@ module RemoteC {
     interface AMSend;
     interface Packet;
     interface SplitControl as AMControl;
-    interface GpioInterrupt as Switch;
+    interface GeneralIO as Switch;
+    interface Leds;
+    interface Timer <TMilli>;
   }
 }
 
@@ -20,22 +29,20 @@ implementation {
 
   event void Boot.booted ()
   {
+    call Switch.makeInput ();
     activateAutopilot = TRUE;
     call AMControl.start ();
     *(char*)(call Packet.getPayload (&activateP  , 1)) = 'A';
     *(char*)(call Packet.getPayload (&deactivateP, 1)) = 'D';
-    call Switch.enableRisingEdge ();
+    call Timer.startPeriodic (1);
   }
 
   event void AMSend.sendDone (message_t *bufPtr, error_t error)
   {
     if (error == SUCCESS) {
-      // The documentation says 'Interrupts keep running until "disable()" is called', so I assume this is the proper protocol to reenable interrupts after they have been processed.
-      call Switch.disable ();
-      call Switch.enableRisingEdge ();
-      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"); }
-      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); }
-      activateAutopilot = ! activateAutopilot;
+      // The documentation says "Interrupts keep running until \"disable()\" is called", so I assume this is the proper protocol to reenable interrupts after they have been processed.
+      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"  ); call Leds.led0On  (); }
+      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); call Leds.led0Off (); }
     }
   }
 
@@ -49,14 +56,31 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-  // When this is fired, the button has been pressed.
-  async event void Switch.fired ()
+  event void Timer.fired ()
   {
-    if (call AMSend.send (AM_BROADCAST_ADDR, activateAutopilot ? &activateP : &deactivateP, 1) == SUCCESS) {
+
+    static bool switchPressed = FALSE;
+
+    if (! call Switch.get ()) {
+      call Leds.led2On ();
+      switchPressed = TRUE;
+      if (activateAutopilot) {
+	call Leds.led1On ();
+	call AMSend.send (AM_BROADCAST_ADDR, &activateP, 1);
+      }
+      else {
+	call Leds.led1Off ();
+	call AMSend.send (AM_BROADCAST_ADDR, &deactivateP, 1);
+      }
     }
     else {
-      dbg ("Remote", "Message failure\n");
+      if (switchPressed) {
+	call Leds.led2Off ();
+	switchPressed = FALSE;
+	activateAutopilot = ! activateAutopilot;
+      }
     }
+
   }
 
 }
