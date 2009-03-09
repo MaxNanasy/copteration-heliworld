@@ -9,7 +9,7 @@ module AutopilotC {
   uses {
     interface Boot;
     interface Receive;
-    interface Timer <TMilli> as MilliTimer;
+    interface Timer <TMilli>;
     interface IMU;
     interface StdControl as IMUControl;
     interface Motors;
@@ -39,8 +39,6 @@ implementation {
   event void Boot.booted ()
   {
 
-    int16_t accl;
-
     call MuxInit.init ();
 
     call MotorsInit.init ();
@@ -57,17 +55,7 @@ implementation {
 
     call IMUControl.start ();
 
-    call IMU.readRegister (YACCL_OUT);
-
-    for (;;) {
-      accl = call IMU.readRegister (YACCL_OUT) << 2;
-      if      (accl >= 4 *  200) //  535)
-	call Leds.set (1); // 001
-      else if (accl <= 4 * -200) // -535)
-	call Leds.set (4); // 100
-      else
-        call Leds.set (2); // 010
-    }
+    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
@@ -79,7 +67,7 @@ implementation {
     switch (directive) {
     case 'A':
       if (! autopilotActive) {
-        call MilliTimer.startPeriodic (IMU_PERIOD);
+        call Timer.startPeriodic (IMU_PERIOD);
 	    call MuxControl.start ();
         autopilotActive = TRUE;
         dbg ("Autopilot", "Autopilot activated\n");
@@ -88,7 +76,7 @@ implementation {
     case 'D':
       if (autopilotActive) {
         call MuxControl.stop ();
-        call MilliTimer.stop ();
+        call Timer.stop ();
         autopilotActive = FALSE;
         dbg ("Autopilot", "Autopilot deactivated\n");
       }
@@ -111,18 +99,30 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-  #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); if (data | (1 << 14)) return; LAandAV.prev = data; } while (0)
+#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))); } while (0)
   void updateData ()
   {
 
-    static int tick = 0;
+    static uint8_t tick = 0;
     static DoubleVector3 LAandAV;
     uint16_t data;
     Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
     DoubleVector3 positionAndOrientation;
     float yawCorrection;
 
+    uint16_t accl;
+
     tick++;
+
+    call IMU.readRegister (YACCL_OUT);
+    accl = call IMU.readRegister (YACCL_OUT) << 2; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
+
+    if      (accl >= 4 *  200) //  535)
+      call Leds.set (1); // 001
+    else if (accl <= 4 * -200) // -535)
+      call Leds.set (4); // 100
+    else
+      call Leds.set (2); // 010
 
     call IMU.readRegister(XACCL_OUT);
 
@@ -158,7 +158,7 @@ implementation {
 
   }
 
-  event void MilliTimer.fired () {
+  event void Timer.fired () {
     updateData ();
   }
 

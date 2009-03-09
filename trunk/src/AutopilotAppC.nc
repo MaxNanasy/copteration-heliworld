@@ -31,7 +31,7 @@ implementation {
   AutopilotC.DeadReckoning -> DeadReckoningC;
   AutopilotC.Receive -> AMReceiverC;
   AutopilotC.AMControl -> ActiveMessageC;
-  AutopilotC.MilliTimer -> AutopilotTimerC;
+  AutopilotC.Timer -> AutopilotTimerC;
   AutopilotC.IMU -> IMUC;
   AutopilotC.IMUControl -> IMUC;
   AutopilotC.Spi2Byte -> Spi2ByteC;
