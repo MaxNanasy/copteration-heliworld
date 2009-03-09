@@ -39,8 +39,6 @@ implementation {
   event void Boot.booted ()
   {
 
-    uint8_t i, j;
-
     int16_t accl;
 
     call MuxInit.init ();
@@ -59,17 +57,17 @@ implementation {
 
     call IMU.readRegister (YACCL_OUT);
 
-    for (i = 0;; i++) {
+    call IMUControl.start ();
+
+    for (;;) {
       call BusyWait.wait (IMU_PERIOD * 1000);
-      call IMUControl.start ();
       accl = call IMU.readRegister (YACCL_OUT) << 2;
-	  call IMUControl.stop  ();
       if      (accl >= 4 *  535)
-	  call Leds.set (1); // 001
-        else if (accl <= 4 * -535)
-	  call Leds.set (4); // 100
-        else
-      call Leds.set (2); // 010 
+	call Leds.set (1); // 001
+      else if (accl <= 4 * -535)
+	call Leds.set (4); // 100
+      else
+        call Leds.set (2); // 010
     }
 
   }
