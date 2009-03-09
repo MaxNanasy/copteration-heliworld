@@ -51,7 +51,7 @@ Vector3 relativeToAbsoluteV3 (Vector3 orientation, Vector3 a)
     ;
   
   return V3 ( a.x * (  cP * cY) + a.y * (- cR * sY + sR * sP * cY) + a.z * (  sR * sY + cR * sP * cY),
-	      a.x * (  cP * sY) + a.y * (  cR * cY + sR * sP * sY) + a.z * (- sR * cY + cR * sP * sY),
+	            a.x * (  cP * sY) + a.y * (  cR * cY + sR * sP * sY) + a.z * (- sR * cY + cR * sP * sY),
               a.x * (- sP     ) + a.y * (  sR * cP               ) + a.z * (  cR * cP               )
 	      );
 

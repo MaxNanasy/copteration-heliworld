@@ -14,7 +14,7 @@ generic module PIDC (typedef a) {
 implementation {
 
   float kp, ki, kd; // P weight, I weight, D weight
-  a previousError; // the last recorded error value, the time-weighted summation of all known error values
+  a previousError; // the last recorded error value
 
   async command void PID.initialize (float p, float i, float d, a pe, a it)
   {
@@ -22,6 +22,10 @@ implementation {
     previousError = pe; call Integrator.initialize (it);
   }
 
+  // In the formulae:
+  // t: current time
+  // d: time interval since last update
+  // e: error
   async command a PID.updateError (float dt, a error)
   {
     a integral, derivative;
