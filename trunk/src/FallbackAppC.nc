@@ -1,6 +1,7 @@
 configuration FallbackAppC { }
 
 implementation {
+
   components FallbackC, MainC;
   components new AMReceiverC (0), ActiveMessageC;
   components MotorsC;
@@ -17,13 +18,13 @@ implementation {
   FallbackC.AMControl -> ActiveMessageC;
   FallbackC.Leds -> LedsC;
   FallbackC.MotorsInit -> MotorsC.Init;
-  FallbackC.MuxInit -> MuxC;
+  FallbackC.MuxInit    -> MuxC;
   FallbackC.MuxControl -> MuxC;
   
   MotorsC.RotorPWM -> HPLT1pwmC;
   MotorsC.TiltPWM  -> HPLT3pwmC;
 
-  MuxC.MoteBuffer -> GPIOPins.PortC4;
-  MuxC.PassthroughBuffer -> GPIOPins.PortC5;
+  MuxC.MoteBuffer        -> GPIOPins.PortD3; // USART1_TxD
+  MuxC.PassthroughBuffer -> GPIOPins.PortD2; // USART1_RxD
 
 }

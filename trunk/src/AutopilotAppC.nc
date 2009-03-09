@@ -22,9 +22,7 @@ implementation {
   components HPLT1pwmC, HPLT3pwmC;
   //GPIO Pins for mux control & SPI
   components HplAtm128GeneralIOC as GPIOPins;
-  components InvertIOC as InvC0,
-             InvertIOC as InvC1,
-             InvertIOC as InvC2;
+  components MuxC;
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -42,13 +40,17 @@ implementation {
   AutopilotC.MotorsInit -> MotorsC.Init;
   //Wire the pin for the Multiplexor Select Bit used to choose whether the autopilot or user controls
   //the helicopter.  Corresponds to pin 33 on the 51 pin connector.
-  AutopilotC.MuxSelect -> GPIOPins.PortC4;
+  AutopilotC.MuxInit    -> MuxC;
+  AutopilotC.MuxControl -> MuxC;
   AutopilotC.AMSend -> AMSenderC;
   AutopilotC.Packet -> AMSenderC;
   AutopilotC.BusyWait -> BusyWaitMicroC;
 
   MotorsC.RotorPWM -> HPLT1pwmC;
   MotorsC. TiltPWM -> HPLT3pwmC;
+
+  MuxC.MoteBuffer        -> GPIOPins.PortD3; // USART1_TxD
+  MuxC.PassthroughBuffer -> GPIOPins.PortD2; // USART1_RxD
 
   //wire up the remaining components
   LinearPIDC.Additive -> Vector3C;
@@ -68,17 +70,13 @@ implementation {
 
   IMUC.Spi2Byte -> Spi2ByteC;
   IMUC.Spi2Init -> Spi2ByteC;
-  IMUC.Reset -> GPIOPins.PortC4; // PW4
+  IMUC.Reset -> GPIOPins.PortF4; // ADC4
   IMUC.BusyWait -> BusyWaitMicroC;
 
-  /*  InvC0.NormalIO -> GPIOPins.PortC0;
-  InvC1.NormalIO -> GPIOPins.PortC2;
-  InvC2.NormalIO -> GPIOPins.PortC3; */
-
-  Spi2ByteC.SCLK -> GPIOPins.PortC0; // PW0
-  Spi2ByteC.MISO -> GPIOPins.PortC1; // PW1
-  Spi2ByteC.MOSI -> GPIOPins.PortC2; // PW2
-  Spi2ByteC.SS   -> GPIOPins.PortC3; // PW3
+  Spi2ByteC.SCLK -> GPIOPins.PortF7; // ADC7
+  Spi2ByteC.MISO -> GPIOPins.PortF6; // ADC6
+  Spi2ByteC.MOSI -> GPIOPins.PortF5; // ADC5
+  Spi2ByteC.SS   -> GPIOPins.PortC7; // PW7
   Spi2ByteC.BusyWait -> BusyWaitMicroC;
 
 }

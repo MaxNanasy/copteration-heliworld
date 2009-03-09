@@ -20,8 +20,8 @@ module AutopilotC {
     interface AMSend;
     interface Packet;
     interface DeadReckoning;
-    // 0: pass-through
-    // 1: autopilot
+    interface StdControl as MuxControl;
+    interface Init as MuxInit;
     interface GeneralIO as MuxSelect;
     interface Leds;
     interface BusyWait <TMicro, uint16_t>;
@@ -43,7 +43,7 @@ implementation {
 
     int16_t accl;
 
-    call MuxSelect.clr ();
+    call MuxInit.init ();
 
     call MotorsInit.init ();
 
@@ -89,17 +89,18 @@ implementation {
     switch (directive) {
     case 'A':
       if (! autopilotActive) {
-		call MilliTimer.startPeriodic (IMU_PERIOD);
-		call MuxSelect.set ();
-		autopilotActive = TRUE;
-		dbg ("Autopilot", "Autopilot activated\n");
+        call MilliTimer.startPeriodic (IMU_PERIOD);
+	call MuxControl.start ();
+	autopilotActive = TRUE;
+	dbg ("Autopilot", "Autopilot activated\n");
       }
       break;
     case 'D':
       if (autopilotActive) {
-		call MilliTimer.stop ();
-		autopilotActive = FALSE;
-		dbg ("Autopilot", "Autopilot deactivated\n");
+	call MuxControl.stop ();
+        call MilliTimer.stop ();
+        autopilotActive = FALSE;
+        dbg ("Autopilot", "Autopilot deactivated\n");
       }
       break;
     default:
