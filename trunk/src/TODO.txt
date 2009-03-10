@@ -1,0 +1,5 @@
+TODO:
+
+1. Invert output to the IMU (to correct hardware inversion)
+2. Assign correct ports for SPI communication with IMU
+3. Measure initial force of gravity on the IMU to set our base axis system
