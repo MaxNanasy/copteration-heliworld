@@ -1,3 +1,7 @@
+/*
+ * Please note that all output using SPI has been inverted, since we pass our SPI signals through
+ * an inverting buffer.
+*/
 #include "util.h"
 
 generic module Spi2ByteC (uint16_t period)
@@ -25,8 +29,8 @@ implementation
     call MOSI.makeOutput ();
     call SS  .makeOutput ();
 
-    call SS  .set ();
-    call SCLK.set ();
+    call SS  .clr ();
+    call SCLK.clr ();
 
     return SUCCESS;
   }
@@ -46,30 +50,30 @@ implementation
 
     uint8_t bit;
 
-    call SCLK.set ();
-    call SS  .clr ();
+    call SCLK.clr ();
+    call SS  .set ();
 
     delay ();
 
     for (bit = 0; bit < 16; bit++) {
 
       if (x & (1 << 15))
-	call MOSI.set ();
-      else
 	call MOSI.clr ();
+      else
+	call MOSI.set ();
       x <<= 1;
 
-      call SCLK.clr ();
+      call SCLK.set ();
       delay2 ();  //could call delay2 here?
 
       x |= call MISO.get ();
 
-      call SCLK.set ();
+      call SCLK.clr ();
       delay ();
 
     }
 
-    call SS.set ();
+    call SS.clr ();
 
     delay ();
     delay ();
@@ -81,6 +85,8 @@ implementation
 }
 
 /*
+INVERT THIS FOR OUR SETUP
+
 ss is high.
 
 set sclk high
