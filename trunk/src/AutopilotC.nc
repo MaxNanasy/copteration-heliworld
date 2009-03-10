@@ -102,7 +102,9 @@ implementation {
 //Accelerometer = mg/LSB
 //Gyro = degrees/sec/LSB
 
-#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))); } while (0)
+#define pi 3.141592653589793
+
+#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
   void updateData ()
   {
 
@@ -118,16 +120,16 @@ implementation {
     tick++;
 
     call IMU.readRegister (YACCL_OUT);
-    accl = call IMU.readRegister (YACCL_OUT) << 2; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
+    accl = (call IMU.readRegister (YACCL_OUT) << 2) / 4; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
 
-    if      (accl >= 4 *  200) //  535)
+    if      (accl >=  200)
       call Leds.set (1); // 001
-    else if (accl <= 4 * -200) // -535)
+    else if (accl <= -200)
       call Leds.set (4); // 100
     else
       call Leds.set (2); // 010
 
-    call IMU.readRegister(XACCL_OUT);
+    call IMU.readRegister (XACCL_OUT);
 
     CHECKDATA (a.x, YACCL_OUT);
     CHECKDATA (a.y, ZACCL_OUT);
@@ -135,19 +137,14 @@ implementation {
     CHECKDATA (b.pitch, YGYRO_OUT);
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
-    
+
     //position is in terms of undefined units; orientation is in terms of radians.
     // Changed all time units to seconds.
-    positionAndOrientation = call DeadReckoning.updateReckoning (((float)IMU_PERIOD)/1000, LAandAV.a, LAandAV.b*GYRO_SCALE*pi/180);
+    positionAndOrientation = call DeadReckoning.updateReckoning (((float)IMU_PERIOD)/1000, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
-    //dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
-    //dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
     yawCorrection            = call    YawPID.updateError (((float)IMU_PERIOD)/1000, targetYaw - orientation.yaw);
     absoluteLinearCorrection = call LinearPID.updateError (((float)IMU_PERIOD)/1000, addV3 (targetPosition, scaleV3 (-1, position)));
     linearCorrection = absoluteToRelativeV3 (orientation, absoluteLinearCorrection);
-    //dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
-    //dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
-    //dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
 
     if (tick % MOTOR_PERIOD == 0) {
       // T + B = z
