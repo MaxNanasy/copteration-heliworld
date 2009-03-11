@@ -57,6 +57,11 @@ implementation {
 
     call IMUControl.start ();
 
+    call Motors.setTopRotorPower (.25);
+    call Motors.setBottomRotorPower (.9);
+    call Motors.setPitchPower (.9);
+    call Motors.setRollPower (.1);
+
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.    
     call XPID  .initialize (1, 1, 1, 0, 0);
     call YPID  .initialize (1, 1, 1, 0, 0);
@@ -68,7 +73,7 @@ implementation {
 
     call MuxControl.start ();
 
-    call Timer.startPeriodic (IMU_PERIOD);
+    //    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
