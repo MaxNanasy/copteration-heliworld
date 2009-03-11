@@ -15,7 +15,7 @@ implementation {
   components Vector3C, floatC;
   components new PIDC (float) as XPIDC, new PIDC (float) as YPIDC, new PIDC (float) as ZPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
-  components new IntegratorC (Vector3) as XPIDCIntegratorC, new IntegratorC (Vector3) as YPIDCIntegratorC, new IntegratorC (Vector3) as ZPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
+  components new IntegratorC (float) as XPIDCIntegratorC, new IntegratorC (float) as YPIDCIntegratorC, new IntegratorC (float) as ZPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
   components MotorsC;
   components LedsC;
@@ -27,7 +27,9 @@ implementation {
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
-  AutopilotC.LinearPID -> LinearPIDC;
+  AutopilotC.XPID -> XPIDC;
+  AutopilotC.YPID -> YPIDC;
+  AutopilotC.ZPID -> ZPIDC;
   AutopilotC.YawPID -> YawPIDC;
   AutopilotC.DeadReckoning -> DeadReckoningC;
   AutopilotC.Receive -> AMReceiverC;
@@ -53,10 +55,16 @@ implementation {
 
   //wire up the remaining components
   XPIDC  .Additive -> floatC;
+  YPIDC  .Additive -> floatC;
+  ZPIDC  .Additive -> floatC;
   YawPIDC.Additive -> floatC;
   XPIDC  .Integrator -> XPIDCIntegratorC;
+  YPIDC  .Integrator -> YPIDCIntegratorC;
+  ZPIDC  .Integrator -> ZPIDCIntegratorC;
   YawPIDC.Integrator -> YawPIDCIntegratorC;
   XPIDCIntegratorC  .Additive -> floatC;
+  YPIDCIntegratorC  .Additive -> floatC;
+  ZPIDCIntegratorC  .Additive -> floatC;
   YawPIDCIntegratorC.Additive -> floatC;
 
   DeadReckoningC.LAtoLV -> LAtoLVIntegratorC;
