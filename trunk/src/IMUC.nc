@@ -21,15 +21,15 @@ implementation {
   command error_t StdControl.start ()
   {
     call Spi2Init.init ();
-    call Reset.set ();
-    call BusyWait.wait (1000);
     call Reset.clr ();
+    call BusyWait.wait (1000);
+    call Reset.set ();
     return SUCCESS;
   }
 
   command error_t StdControl.stop ()
   {
-    call Reset.set ();
+    call Reset.clr ();
     return SUCCESS;
   }
 
