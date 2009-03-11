@@ -6,6 +6,7 @@
 
 #define IMU_PERIOD_S (((float) IMU_PERIOD) / 1000) // IMU_PERIOD in seconds.
 
+
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
   uses {
@@ -41,6 +42,7 @@ implementation {
   float targetYaw;
 
   Vector3 determineOrientation ();
+  DoubleVector3 getIMUData ();
 
   event void Boot.booted ()
   {
@@ -109,32 +111,13 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-#define pi 3.141592653589793238
-
 #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
-  void updateData ()
+
+  DoubleVector3 getIMUData ()
   {
 
-    static uint8_t tick = 0;
     static DoubleVector3 LAandAV;
     uint16_t data;
-    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection, errorPosition;
-    DoubleVector3 positionAndOrientation;
-    float yawCorrection;
-
-    int16_t accl;
-
-    tick++;
-
-    call IMU.readRegister (YACCL_OUT);
-    accl = ((int16_t) call IMU.readRegister (YACCL_OUT) << 2) / 4; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
-
-    if      (accl >=  200) //  535)
-      call Leds.set (1); // 001
-    else if (accl <= -200) // -535)
-      call Leds.set (4); // 100
-    else
-      call Leds.set (2); // 010
 
     call IMU.readRegister(XACCL_OUT);
 
@@ -144,6 +127,36 @@ implementation {
     CHECKDATA (b.pitch, YGYRO_OUT);
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
+
+    return LAandAV;
+
+  }
+
+#define pi 3.141592653589793238
+
+  void updateData ()
+  {
+
+    static uint8_t tick = 0;
+    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection, errorPosition;
+    DoubleVector3 LAandAV, positionAndOrientation;
+    float yawCorrection;
+
+    int16_t accl;
+
+    tick++;
+
+    call IMU.readRegister (YACCL_OUT);
+    accl = ((int16_t) call IMU.readRegister (YACCL_OUT) << 2) / 4;
+
+    if      (accl >=  200)
+      call Leds.set (1); // 001
+    else if (accl <= -200)
+      call Leds.set (4); // 100
+    else
+      call Leds.set (2); // 010
+
+    LAandAV = getIMUData ();
 
     positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
