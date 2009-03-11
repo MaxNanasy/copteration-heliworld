@@ -72,13 +72,13 @@ implementation {
   IMUC.Reset -> InvertReset; // GPIOPins.PortF4; // ADC4
   IMUC.BusyWait -> BusyWaitMicroC;
 
-  InvertSCLK .NormalIO -> GPIOPins.PortF7; // ADC7
+  InvertSCLK .NormalIO -> GPIOPins.PortF6; // ADC6
   InvertMOSI .NormalIO -> GPIOPins.PortF5; // ADC5
   InvertSS   .NormalIO -> GPIOPins.PortC7; // PW7
   InvertReset.NormalIO -> GPIOPins.PortF4; // ADC4
 
-  Spi2ByteC.SCLK -> InvertSCLK; // GPIOPins.PortF7; // ADC7
-  Spi2ByteC.MISO ->                GPIOPins.PortF6; // ADC6
+  Spi2ByteC.SCLK -> InvertSCLK; // GPIOPins.PortF6; // ADC6
+  Spi2ByteC.MISO ->                GPIOPins.PortF7; // ADC7
   Spi2ByteC.MOSI -> InvertMOSI; // GPIOPins.PortF5; // ADC5
   Spi2ByteC.SS   -> InvertSS  ; // GPIOPins.PortC7; // PW7
   Spi2ByteC.BusyWait -> BusyWaitMicroC;

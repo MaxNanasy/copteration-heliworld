@@ -7,14 +7,16 @@ implementation
   components HplAtm128GeneralIOC as GPIOPins;
   components new AMSenderC (0), ActiveMessageC;
   components new TimerMilliC ();
+  components LedsC;
 
   FallbackRemoteC.Boot -> MainC;
   FallbackRemoteC.AMSend -> AMSenderC;
   FallbackRemoteC.Packet -> AMSenderC;
   FallbackRemoteC.AMControl -> ActiveMessageC;
-  FallbackRemoteC.ActivateSwitch -> GPIOPins.PortC0;
   FallbackRemoteC.Timer -> TimerMilliC;
-  FallbackRemoteC.LeftSwitch  -> GPIOPins.PortC1;
-  FallbackRemoteC.RightSwitch -> GPIOPins.PortC2;
+  FallbackRemoteC.ActivateSwitch -> GPIOPins.PortC4; // PW4
+  FallbackRemoteC.LeftSwitch     -> GPIOPins.PortC2; // PW2
+  FallbackRemoteC.RightSwitch    -> GPIOPins.PortC0; // PW0
+  FallbackRemoteC.Leds -> LedsC;
 
 }
