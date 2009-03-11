@@ -72,16 +72,11 @@ implementation {
 
   }
 
-  // Assuming the system is at rest, this determines its orientation based on acceleration due to gravity.
+  // Assuming the system is at rest (the only force acting upon it is Gravity), this determines its orientation based on acceleration due to gravity.
   Vector3 determineOrientation ()
   {
-
-    Vector3 linearAccel = getIMUData ().a;
-
-    
-
-    return zeroV3;
-
+    Vector3 accl = getIMUData ().a;
+    return V3 (atan (accl.y / accl.z), atan (accl.x / accl.z), 0);
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'D', then the autopilot is deactivated.
