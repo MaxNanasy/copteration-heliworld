@@ -103,7 +103,7 @@ implementation {
 
 #define pi 3.141592653589793238
 
-#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))); } while (0)
+#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
   void updateData ()
   {
 
@@ -119,11 +119,11 @@ implementation {
     tick++;
 
     call IMU.readRegister (YACCL_OUT);
-    accl = call IMU.readRegister (YACCL_OUT) << 2; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
+    accl = ((int16_t) call IMU.readRegister (YACCL_OUT) << 2) / 4; // (float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2));
 
-    if      (accl >= 4 *  200) //  535)
+    if      (accl >=  200) //  535)
       call Leds.set (1); // 001
-    else if (accl <= 4 * -200) // -535)
+    else if (accl <= -200) // -535)
       call Leds.set (4); // 100
     else
       call Leds.set (2); // 010
@@ -137,12 +137,12 @@ implementation {
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
 
-    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD, LAandAV.a, LAandAV.b);
+    positionAndOrientation = call DeadReckoning.updateReckoning (((float) IMU_PERIOD) / 1000, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
     dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
-    yawCorrection            = call    YawPID.updateError (IMU_PERIOD, targetYaw - orientation.yaw);
-    absoluteLinearCorrection = call LinearPID.updateError (IMU_PERIOD, addV3 (targetPosition, scaleV3 (-1, position)));
+    yawCorrection            = call    YawPID.updateError (((float) IMU_PERIOD) / 1000, targetYaw - orientation.yaw);
+    absoluteLinearCorrection = call LinearPID.updateError (((float) IMU_PERIOD) / 1000, addV3 (targetPosition, scaleV3 (-1, position)));
     linearCorrection = absoluteToRelativeV3 (orientation, absoluteLinearCorrection);
     dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
     dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
