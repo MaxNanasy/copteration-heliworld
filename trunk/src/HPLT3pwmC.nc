@@ -36,13 +36,12 @@ TOSH_ASSIGN_PIN(PWM3Bout, E, 4);	// port,pin E4
     TOSH_CLR_PWM3Bout_PIN();
 
     // Do one bit at a time to not overwrite other things that may be set
-    // Sean's Note: we can set these values to 11 instead of 10 such that TCCR3A is 1111XXXX to set output
-    // on compare (rising) and clear output on compare (falling) instead of the opposite, which is what
-    // is currently set
-    sbi(TCCR3A, COM1A1 );// COMA = 10bin    -- clear output on compare
-    cbi(TCCR3A, COM1A0); // 				so we can use 8bit speed values
-    sbi(TCCR3A, COM1B1); // COMB = 10bin
-    cbi(TCCR3A, COM1B0); //TCCR3A now looks like: 1010XXXX
+    // Sean's Note: we can set these values to 11 (*CURRENT*) instead of 10 such that TCCR3A is 1111XXXX to set output
+    // on compare (rising) and clear output on compare (falling) instead of the opposite.
+    sbi(TCCR3A, COM1A1 );// COMA = 11bin    -- clear output on compare
+    sbi(TCCR3A, COM1A0); // 				so we can use 8bit speed values
+    sbi(TCCR3A, COM1B1); // COMB = 11bin
+    sbi(TCCR3A, COM1B0); //TCCR3A now looks like: 1111XXXX
     
     // NOTE: these bits are shared with both A&B PWM outputs
     // See page 135 of the ATMega128 Datasheet for more info on WGM (Waveform Generation Mode)

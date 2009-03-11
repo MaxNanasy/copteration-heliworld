@@ -55,6 +55,8 @@ implementation {
 
     call IMUControl.start ();
 
+    call MuxControl.start ();
+
     call Timer.startPeriodic (IMU_PERIOD);
 
   }
@@ -98,6 +100,8 @@ implementation {
   }
 
   event void AMControl.stopDone (error_t err) { }
+
+#define pi 3.141592653589793238
 
 #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))); } while (0)
   void updateData ()
