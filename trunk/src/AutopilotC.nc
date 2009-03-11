@@ -4,6 +4,8 @@
 #define   IMU_PERIOD 4 // Poll   the IMU    every  IMU_PERIOD                 ms.
 #define MOTOR_PERIOD 5 // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
 
+#define IMU_PERIOD_S (((float) IMU_PERIOD) / 1000) // IMU_PERIOD in seconds.
+
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
   uses {
@@ -14,8 +16,10 @@ module AutopilotC {
     interface StdControl as IMUControl;
     interface Motors;
     interface Init as MotorsInit;
-    interface PID <Vector3> as LinearPID;
-    interface PID <float>   as YawPID   ;
+    interface PID <float> as XPID  ;
+    interface PID <float> as YPID  ;
+    interface PID <float> as ZPID  ;
+    interface PID <float> as YawPID;
     interface SplitControl as AMControl;
     interface AMSend;
     interface Packet;
@@ -36,6 +40,8 @@ implementation {
   Vector3 targetPosition;
   float targetYaw;
 
+  Vector3 determineOrientation ();
+
   event void Boot.booted ()
   {
 
@@ -47,13 +53,15 @@ implementation {
     targetPosition = zeroV3;
     targetYaw = 0;
 
-    // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
-    call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
-    call YawPID.initialize    (1, 1, 1, 0     , 0     );
-    call DeadReckoning.initialize (zeroV3, zeroV3);
-    call AMControl.start ();
-
     call IMUControl.start ();
+
+    // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.    
+    call XPID  .initialize (1, 1, 1, 0, 0);
+    call YPID  .initialize (1, 1, 1, 0, 0);
+    call ZPID  .initialize (1, 1, 1, 0, 0);
+    call YawPID.initialize (1, 1, 1, 0, 0);
+    call DeadReckoning.initialize (zeroV3, determineOrientation ());
+    call AMControl.start ();
 
     call MuxControl.start ();
 
@@ -61,26 +69,26 @@ implementation {
 
   }
 
+  Vector3 determineOrientation ()
+  {
+    return zeroV3;
+  }
+
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'D', then the autopilot is deactivated.
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     char directive = *(char*)payload;
-    dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
     switch (directive) {
     case 'A':
       if (! autopilotActive) {
-        call Timer.startPeriodic (IMU_PERIOD);
-	    call MuxControl.start ();
+        call MuxControl.start ();
         autopilotActive = TRUE;
-        dbg ("Autopilot", "Autopilot activated\n");
       }
       break;
     case 'D':
       if (autopilotActive) {
         call MuxControl.stop ();
-        call Timer.stop ();
         autopilotActive = FALSE;
-        dbg ("Autopilot", "Autopilot deactivated\n");
       }
       break;
     default:
@@ -110,7 +118,7 @@ implementation {
     static uint8_t tick = 0;
     static DoubleVector3 LAandAV;
     uint16_t data;
-    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
+    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection, errorPosition;
     DoubleVector3 positionAndOrientation;
     float yawCorrection;
 
@@ -137,18 +145,14 @@ implementation {
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
 
-    positionAndOrientation = call DeadReckoning.updateReckoning (((float) IMU_PERIOD) / 1000, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
+    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
-    dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
-    dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
-    yawCorrection            = call    YawPID.updateError (((float) IMU_PERIOD) / 1000, targetYaw - orientation.yaw);
-    absoluteLinearCorrection = call LinearPID.updateError (((float) IMU_PERIOD) / 1000, addV3 (targetPosition, scaleV3 (-1, position)));
+    errorPosition = addV3 (targetPosition, scaleV3 (-1, position));
+    absoluteLinearCorrection = V3 (call XPID.updateError (IMU_PERIOD_S, errorPosition.x), call YPID.updateError (IMU_PERIOD_S, errorPosition.y), call ZPID.updateError (IMU_PERIOD_S, errorPosition.z));
+    yawCorrection = call    YawPID.updateError (IMU_PERIOD_S, targetYaw - orientation.yaw);
     linearCorrection = absoluteToRelativeV3 (orientation, absoluteLinearCorrection);
-    dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
-    dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
-    dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
 
-    if (tick % MOTOR_PERIOD == 0) {
+    if (autopilotActive && tick % MOTOR_PERIOD == 0) {
       // T + B = z
       // T - B = yaw
       // -----------
@@ -167,4 +171,3 @@ implementation {
   }
 
 }
-

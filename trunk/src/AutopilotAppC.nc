@@ -13,9 +13,9 @@ implementation {
   components BusyWaitMicroC;
   components new Spi2ByteC (SPI_PERIOD);
   components Vector3C, floatC;
-  components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
+  components new PIDC (float) as XPIDC, new PIDC (float) as YPIDC, new PIDC (float) as ZPIDC, new PIDC (float) as YawPIDC;
   components DeadReckoningC;
-  components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
+  components new IntegratorC (Vector3) as XPIDCIntegratorC, new IntegratorC (Vector3) as YPIDCIntegratorC, new IntegratorC (Vector3) as ZPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
   components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
   components MotorsC;
   components LedsC;
@@ -52,12 +52,12 @@ implementation {
   MuxC.PassthroughBuffer -> GPIOPins.PortD2; // USART1_RxD
 
   //wire up the remaining components
-  LinearPIDC.Additive -> Vector3C;
-  YawPIDC   .Additive -> floatC;
-  LinearPIDC.Integrator -> LinearPIDCIntegratorC;
-  YawPIDC   .Integrator -> YawPIDCIntegratorC;
-  LinearPIDCIntegratorC.Additive -> Vector3C;
-  YawPIDCIntegratorC   .Additive -> floatC;
+  XPIDC  .Additive -> floatC;
+  YawPIDC.Additive -> floatC;
+  XPIDC  .Integrator -> XPIDCIntegratorC;
+  YawPIDC.Integrator -> YawPIDCIntegratorC;
+  XPIDCIntegratorC  .Additive -> floatC;
+  YawPIDCIntegratorC.Additive -> floatC;
 
   DeadReckoningC.LAtoLV -> LAtoLVIntegratorC;
   DeadReckoningC.LVtoLP -> LVtoLPIntegratorC;

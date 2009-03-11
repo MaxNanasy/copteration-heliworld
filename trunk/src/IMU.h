@@ -2,7 +2,7 @@
 #define IMU_H
 
 //constants
-#define GRAVITY 1000
+#define GRAVITY (1000 / ACCL_SCALE)
 
 // Registers
 // Power supply

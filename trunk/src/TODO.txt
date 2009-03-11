@@ -1,5 +1,4 @@
 TODO:
 
-1. Assign correct ports for SPI communication with IMU
-2. Measure initial force of gravity on the IMU to set our base axis system
-3. Finish fall back program.
+1. Measure initial force of gravity on the IMU to set our base axis system
+2. Finish fall back program.
