@@ -76,6 +76,8 @@ implementation {
   Vector3 determineOrientation ()
   {
     Vector3 accl = getIMUData ().a;
+    if (accl.z == 0)
+      accl.z = 1;
     return V3 (atan (accl.y / accl.z), atan (accl.x / accl.z), 0);
   }
 
