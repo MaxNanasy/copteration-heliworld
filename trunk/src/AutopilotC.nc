@@ -57,10 +57,10 @@ implementation {
 
     call IMUControl.start ();
 
-    call Motors.setTopRotorPower (.25);
+    /*    call Motors.setTopRotorPower    (.25);
     call Motors.setBottomRotorPower (.9);
-    call Motors.setPitchPower (.9);
-    call Motors.setRollPower (.1);
+    call Motors.setPitch (.9);
+    call Motors.setRoll  (.1); */
 
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.    
     call XPID  .initialize (1, 1, 1, 0, 0);
@@ -73,7 +73,7 @@ implementation {
 
     call MuxControl.start ();
 
-    //    call Timer.startPeriodic (IMU_PERIOD);
+    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
@@ -144,7 +144,7 @@ implementation {
 
 #define pi 3.141592653589793238
 
-  void updateData ()
+  event void Timer.fired ()
   {
 
     static uint8_t tick = 0;
@@ -187,10 +187,6 @@ implementation {
       call Motors.setRollPower        (linearCorrection.x                );
     }
 
-  }
-
-  event void Timer.fired () {
-    updateData ();
   }
 
 }
