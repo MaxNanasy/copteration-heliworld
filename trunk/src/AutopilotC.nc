@@ -63,6 +63,7 @@ implementation {
     call ZPID  .initialize (1, 1, 1, 0, 0);
     call YawPID.initialize (1, 1, 1, 0, 0);
     call DeadReckoning.initialize (zeroV3, determineOrientation ());
+
     call AMControl.start ();
 
     call MuxControl.start ();
@@ -71,9 +72,16 @@ implementation {
 
   }
 
+  // Assuming the system is at rest, this determines its orientation based on acceleration due to gravity.
   Vector3 determineOrientation ()
   {
+
+    Vector3 linearAccel = getIMUData ().a;
+
+    
+
     return zeroV3;
+
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'D', then the autopilot is deactivated.
@@ -111,8 +119,6 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
-
   DoubleVector3 getIMUData ()
   {
 
@@ -120,6 +126,8 @@ implementation {
     uint16_t data;
 
     call IMU.readRegister(XACCL_OUT);
+
+#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
 
     CHECKDATA (a.x, YACCL_OUT);
     CHECKDATA (a.y, ZACCL_OUT);
