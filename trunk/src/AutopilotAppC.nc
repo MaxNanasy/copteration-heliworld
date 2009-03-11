@@ -23,6 +23,7 @@ implementation {
   //GPIO Pins for mux control & SPI
   components HplAtm128GeneralIOC as GPIOPins;
   components MuxC;
+  components new InvertIOC () as InvertSCLK, new InvertIOC () as InvertMOSI, new InvertIOC () as InvertSS, new InvertIOC () as InvertReset;
 
   //wire up the autopilot to everything it needs
   AutopilotC.Boot -> MainC;
@@ -68,13 +69,18 @@ implementation {
 
   IMUC.Spi2Byte -> Spi2ByteC;
   IMUC.Spi2Init -> Spi2ByteC;
-  IMUC.Reset -> GPIOPins.PortF4; // ADC4
+  IMUC.Reset -> InvertReset; // GPIOPins.PortF4; // ADC4
   IMUC.BusyWait -> BusyWaitMicroC;
 
-  Spi2ByteC.SCLK -> GPIOPins.PortF7; // ADC7
-  Spi2ByteC.MISO -> GPIOPins.PortF6; // ADC6
-  Spi2ByteC.MOSI -> GPIOPins.PortF5; // ADC5
-  Spi2ByteC.SS   -> GPIOPins.PortC7; // PW7
+  InvertSCLK .NormalIO -> GPIOPins.PortF7; // ADC7
+  InvertMOSI .NormalIO -> GPIOPins.PortF5; // ADC5
+  InvertSS   .NormalIO -> GPIOPins.PortC7; // PW7
+  InvertReset.NormalIO -> GPIOPins.PortF4; // ADC4
+
+  Spi2ByteC.SCLK -> InvertSCLK; // GPIOPins.PortF7; // ADC7
+  Spi2ByteC.MISO ->                GPIOPins.PortF6; // ADC6
+  Spi2ByteC.MOSI -> InvertMOSI; // GPIOPins.PortF5; // ADC5
+  Spi2ByteC.SS   -> InvertSS  ; // GPIOPins.PortC7; // PW7
   Spi2ByteC.BusyWait -> BusyWaitMicroC;
 
 }
