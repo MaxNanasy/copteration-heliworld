@@ -68,6 +68,8 @@ implementation {
 
     call IMU.readRegister (YACCL_OUT);
 
+    call Timer.startPeriodic (IMU_PERIOD);
+
   }
 
   // Assuming the system is at rest (the only force acting upon it is Gravity), this determines its orientation based on acceleration due to gravity.
@@ -88,15 +90,15 @@ implementation {
       if (! autopilotActive) {
         call MuxControl.start ();
         autopilotActive = TRUE;
-	call Timer.startPeriodic (IMU_PERIOD);
+	//	call Timer.startPeriodic (IMU_PERIOD);
       }
       break;
     case 'D':
       if (autopilotActive) {
-	call Timer.stop ();
+	//	call Timer.stop ();
         call MuxControl.stop ();
         autopilotActive = FALSE;
-	call Leds.set (0);
+	//	call Leds.set (0);
       }
       break;
     default:
@@ -155,18 +157,31 @@ implementation {
 
     accl = LAandAV.a.y;
 
-    call Motors.setTopRotorPower    (accl / 1000 + .5);
-    call Motors.setBottomRotorPower (accl / 1000 + .5);
-
-    call Motors.setPitchPower ( LAandAV.a.x            / 1000 + .5);
-    call Motors.setRollPower  ((LAandAV.a.z - GRAVITY) / 1000 + .5);
-
     if      (accl >=  200)
       call Leds.set (1); // 001
     else if (accl <= -200)
       call Leds.set (4); // 100
     else
       call Leds.set (2); // 010
+
+    if (autopilotActive) {
+
+      call Motors.setTopRotorPower    (accl / 1500 + .5);
+      call Motors.setBottomRotorPower (accl / 1500 + .5);
+
+      call Motors.setPitchPower ( LAandAV.a.x            / 1000 + .5);
+      call Motors.setRollPower  ((LAandAV.a.z - GRAVITY) / 1000 + .5);
+
+    }
+
+    else {
+
+      call Motors.setTopRotorPower    (.15 + .85 * (.5 + .5 * cos (2 * pi * ((float) tick) / 100 )));
+      call Motors.setBottomRotorPower (.15 + .85 * (.5 + .5 * cos (2 * pi * ((float) tick) / 200)));
+      call Motors.setPitchPower       (             .5 + .5 * cos (2 * pi * ((float) tick) / 100) );
+      call Motors.setRollPower        (             .5 + .5 * cos (2 * pi * ((float) tick) / 50 ) );
+
+    }
 
       /*    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
