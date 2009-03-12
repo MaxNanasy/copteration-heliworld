@@ -1,8 +1,8 @@
 #include "IMU.h"
 #include "Vector3.h"
 
-#define   IMU_PERIOD 4 // Poll   the IMU    every  IMU_PERIOD                 ms.
-#define MOTOR_PERIOD 5 // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
+#define   IMU_PERIOD 20 // Poll   the IMU    every  IMU_PERIOD                 ms.
+#define MOTOR_PERIOD 5  // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
 
 #define IMU_PERIOD_S (((float) IMU_PERIOD) / 1000) // IMU_PERIOD in seconds.
 
@@ -47,6 +47,8 @@ implementation {
   event void Boot.booted ()
   {
 
+    int16_t accl;
+
     call MuxInit.init ();
 
     call MotorsInit.init ();
@@ -56,11 +58,6 @@ implementation {
     targetYaw = 0;
 
     call IMUControl.start ();
-
-    /*    call Motors.setTopRotorPower    (.25);
-    call Motors.setBottomRotorPower (.9);
-    call Motors.setPitch (.9);
-    call Motors.setRoll  (.1); */
 
     // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.    
     call XPID  .initialize (1, 1, 1, 0, 0);
@@ -73,7 +70,19 @@ implementation {
 
     call MuxControl.start ();
 
-    call Timer.startPeriodic (IMU_PERIOD);
+    call IMU.readRegister (YACCL_OUT);
+
+    for (;;) {
+      accl = ((float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2))) / 4;
+      if      (accl >=  200)
+	call Leds.set (1); // 001
+      else if (accl <= -200)
+	call Leds.set (4); // 100
+      else
+	call Leds.set (2); // 010
+    }
+
+    //    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
@@ -152,12 +161,16 @@ implementation {
     DoubleVector3 LAandAV, positionAndOrientation;
     float yawCorrection;
 
-    int16_t accl;
+    float accl;
 
     tick++;
 
-    call IMU.readRegister (YACCL_OUT);
-    accl = ((int16_t) call IMU.readRegister (YACCL_OUT) << 2) / 4;
+    LAandAV = getIMUData ();
+
+    accl = LAandAV.a.y;
+
+    call Motors.setTopRotorPower    (accl / 1000 + .5);
+    call Motors.setBottomRotorPower (accl / 1000 + .5);
 
     if      (accl >=  200)
       call Leds.set (1); // 001
@@ -166,9 +179,7 @@ implementation {
     else
       call Leds.set (2); // 010
 
-    LAandAV = getIMUData ();
-
-    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
+      /*    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
     errorPosition = addV3 (targetPosition, scaleV3 (-1, position));
     absoluteLinearCorrection = V3 (call XPID.updateError (IMU_PERIOD_S, errorPosition.x), call YPID.updateError (IMU_PERIOD_S, errorPosition.y), call ZPID.updateError (IMU_PERIOD_S, errorPosition.z));
@@ -184,9 +195,7 @@ implementation {
       call Motors.setTopRotorPower    (linearCorrection.z + yawCorrection);
       call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
       call Motors.setPitchPower       (linearCorrection.y                );
-      call Motors.setRollPower        (linearCorrection.x                );
-    }
-
+      call Motors.setRollPower        (linearCorrection.x                ); */
   }
 
 }
