@@ -47,8 +47,6 @@ implementation {
   event void Boot.booted ()
   {
 
-    int16_t accl;
-
     call MuxInit.init ();
 
     call MotorsInit.init ();
@@ -72,17 +70,7 @@ implementation {
 
     call IMU.readRegister (YACCL_OUT);
 
-    for (;;) {
-      accl = ((float) ((int16_t) (call IMU.readRegister (YACCL_OUT) << 2))) / 4;
-      if      (accl >=  200)
-	call Leds.set (1); // 001
-      else if (accl <= -200)
-	call Leds.set (4); // 100
-      else
-	call Leds.set (2); // 010
-    }
-
-    //    call Timer.startPeriodic (IMU_PERIOD);
+    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
