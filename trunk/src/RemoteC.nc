@@ -1,10 +1,5 @@
 #define PERIOD 1
 
-/* Yellow: Button is being pressed.
-   Green : Autopilot is about to be activated.
-   Red   : Autopilot has just been activated.
-*/
-
 // Provides a program for the mote that, when a button is pressed, signals the autopilot to begin.
 module RemoteC {
   uses {
@@ -37,14 +32,7 @@ implementation {
     call Timer.startPeriodic (1);
   }
 
-  event void AMSend.sendDone (message_t *bufPtr, error_t error)
-  {
-    if (error == SUCCESS) {
-      // The documentation says "Interrupts keep running until \"disable()\" is called", so I assume this is the proper protocol to reenable interrupts after they have been processed.
-      if (activateAutopilot) { dbg ("Remote", "Autopilot activated (hopefully)\n"  ); call Leds.led0On  (); }
-      else                   { dbg ("Remote", "Autopilot deactivated (hopefully)\n"); call Leds.led0Off (); }
-    }
-  }
+  event void AMSend.sendDone (message_t *bufPtr, error_t error) { }
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
@@ -62,20 +50,18 @@ implementation {
     static bool switchPressed = FALSE;
 
     if (! call Switch.get ()) {
-      call Leds.led2On ();
+      call Leds.set (7);
       switchPressed = TRUE;
       if (activateAutopilot) {
-	call Leds.led1On ();
 	call AMSend.send (AM_BROADCAST_ADDR, &activateP, 1);
       }
       else {
-	call Leds.led1Off ();
 	call AMSend.send (AM_BROADCAST_ADDR, &deactivateP, 1);
       }
     }
     else {
       if (switchPressed) {
-	call Leds.led2Off ();
+	call Leds.set (0);
 	switchPressed = FALSE;
 	activateAutopilot = ! activateAutopilot;
       }

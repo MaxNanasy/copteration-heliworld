@@ -66,11 +66,7 @@ implementation {
 
     call AMControl.start ();
 
-    call MuxControl.start ();
-
     call IMU.readRegister (YACCL_OUT);
-
-    call Timer.startPeriodic (IMU_PERIOD);
 
   }
 
@@ -92,17 +88,19 @@ implementation {
       if (! autopilotActive) {
         call MuxControl.start ();
         autopilotActive = TRUE;
+	call Timer.startPeriodic (IMU_PERIOD);
       }
       break;
     case 'D':
       if (autopilotActive) {
+	call Timer.stop ();
         call MuxControl.stop ();
         autopilotActive = FALSE;
+	call Leds.set (0);
       }
       break;
     default:
-      dbg ("Autopilot", "Junk directive: &c\n", directive);
-      }
+    }
     return bufPtr;
   }
 
@@ -159,6 +157,9 @@ implementation {
 
     call Motors.setTopRotorPower    (accl / 1000 + .5);
     call Motors.setBottomRotorPower (accl / 1000 + .5);
+
+    call Motors.setPitchPower ( LAandAV.a.x            / 1000 + .5);
+    call Motors.setRollPower  ((LAandAV.a.z - GRAVITY) / 1000 + .5);
 
     if      (accl >=  200)
       call Leds.set (1); // 001

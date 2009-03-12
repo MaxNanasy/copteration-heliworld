@@ -53,16 +53,16 @@ implementation {
     call RotorPWM.setBpw (normalize (power) * ROTOR_MAX);
   }
 
-  // All the way to left  is 1 ms (min pulse)
-  // All the way to right is 2 ms (max pulse)
+  // All the way to left  is 1.1 ms (min pulse)
+  // All the way to right is 1.9 ms (max pulse)
   async command void Motors.setPitchPower (float power)
   {
-    call TiltPWM.setApw((normalize (power) + 1)*TILT_MS);
+    call TiltPWM.setApw((normalize (power) * .8 + 1.1)*TILT_MS);
   }
 
   async command void Motors.setRollPower (float power)
   {
-    call TiltPWM.setBpw((normalize (power) + 1)*TILT_MS);
+    call TiltPWM.setBpw((normalize (power) * .8 + 1.1)*TILT_MS);
   }
 
 }
