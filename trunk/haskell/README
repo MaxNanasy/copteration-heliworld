@@ -1,4 +1,10 @@
-Usage information is in Main.hs .
+To install, run:
+
+ ./Setup.hs configure
+ ./Setup.hs build
+ ./Setup.hs install
+
+To run without installing, run ./Main.hs
 
 Dependency | Debian Package
 -----------|--------------------
