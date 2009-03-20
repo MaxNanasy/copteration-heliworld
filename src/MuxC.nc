@@ -13,10 +13,7 @@ implementation {
   
   command error_t Init.init ()
   {
-    call MoteBuffer       .makeOutput ();
-    call PassthroughBuffer.makeOutput ();
-
-    call MoteBuffer       .set ();
+    call MoteBuffer.set ();
     call PassthroughBuffer.clr ();
     return SUCCESS;
   }

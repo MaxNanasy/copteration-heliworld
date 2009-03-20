@@ -20,7 +20,6 @@ implementation {
 
   command error_t StdControl.start ()
   {
-    call Reset.makeOutput ();
     call Spi2Init.init ();
     call Reset.clr ();
     call BusyWait.wait (1000);

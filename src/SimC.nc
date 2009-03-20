@@ -1,11 +1,11 @@
 module SimC {
   provides {
-    interface Boot as RemoteBoot;
-    interface Boot as AutopilotBoot;
+    interface Boot as Remote;
+    interface Boot as Autopilot;
   }
   uses {
     interface Boot;
-    interface Init as EnvironmentInit;
+    interface Init as Environment;
   }
 }
 
@@ -13,9 +13,9 @@ implementation {
 
   event void Boot.booted ()
   {
-    signal AutopilotBoot.booted ();
-    signal RemoteBoot.booted ();
-    call EnvironmentInit.init ();
+    signal Autopilot.booted ();
+    signal Remote.booted ();
+    call Environment.init ();
   }
 
 }

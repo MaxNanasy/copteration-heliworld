@@ -1,31 +1,31 @@
 #include "IMU.h"
 #include "Vector3.h"
 
-#define   IMU_PERIOD 20 // Poll   the IMU    every  IMU_PERIOD                 ms.
-#define MOTOR_PERIOD 5  // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
-
-#define IMU_PERIOD_S (((float) IMU_PERIOD) / 1000) // IMU_PERIOD in seconds.
-
+#define   IMU_PERIOD 4 // Poll   the IMU    every  IMU_PERIOD                 ms.
+#define MOTOR_PERIOD 5 // Adjust the motors every (IMU_PERIOD * MOTOR_PERIOD) ms.
 
 // Provides a program for the mote controlling the helicopter.
 module AutopilotC {
   uses {
     interface Boot;
     interface Receive;
-    interface Timer <TMilli>;
+    interface Timer <TMilli> as MilliTimer;
     interface IMU;
     interface StdControl as IMUControl;
     interface Motors;
     interface Init as MotorsInit;
-    interface PID <float> as XPID  ;
-    interface PID <float> as YPID  ;
-    interface PID <float> as ZPID  ;
-    interface PID <float> as YawPID;
+    interface PID <Vector3> as LinearPID;
+    interface PID <float>   as YawPID   ;
     interface SplitControl as AMControl;
+    interface AMSend;
+    interface Packet;
     interface DeadReckoning;
-    interface Init as MuxInit;
     interface StdControl as MuxControl;
+    interface Init as MuxInit;
+    interface GeneralIO as MuxSelect;
     interface Leds;
+    interface BusyWait <TMicro, uint16_t>;
+    interface Spi2Byte;
   }
 }
 
@@ -36,11 +36,10 @@ implementation {
   Vector3 targetPosition;
   float targetYaw;
 
-  Vector3 determineOrientation ();
-  DoubleVector3 getIMUData ();
-
   event void Boot.booted ()
   {
+
+    int16_t accl;
 
     call MuxInit.init ();
 
@@ -50,56 +49,57 @@ implementation {
     targetPosition = zeroV3;
     targetYaw = 0;
 
-    call IMUControl.start ();
-
-    // Initialize the PIDs with initial previous error and integral of zero.    
-    call XPID  .initialize (0, 0);
-    call YPID  .initialize (0, 0);
-    call ZPID  .initialize (0, 0);
-    call YawPID.initialize (0, 0);
-    call DeadReckoning.initialize (zeroV3, determineOrientation ());
-
+    // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.
+    call LinearPID.initialize (1, 1, 1, zeroV3, zeroV3);
+    call YawPID.initialize    (1, 1, 1, 0     , 0     );
+    call DeadReckoning.initialize (zeroV3, zeroV3);
     call AMControl.start ();
+
+    call IMUControl.start ();
 
     call IMU.readRegister (YACCL_OUT);
 
-    call Timer.startPeriodic (IMU_PERIOD);
+    for (;;) {
+      accl = call IMU.readRegister (YACCL_OUT) << 2;
+      if      (accl >= 4 *  200) //  535)
+	call Leds.set (1); // 001
+      else if (accl <= 4 * -200) // -535)
+	call Leds.set (4); // 100
+      else
+        call Leds.set (2); // 010
+    }
 
-  }
-
-  // Assuming the system is at rest (the only force acting upon it is Gravity), this determines its orientation based on acceleration due to gravity.
-  Vector3 determineOrientation ()
-  {
-    Vector3 accl = getIMUData ().a;
-    if (accl.z == 0)
-      accl.z = 1;
-    return V3 (atan (accl.y / accl.z), atan (accl.x / accl.z), 0);
   }
 
   // This callback inspects the contents of the message.  If it is 'A', then the autopilot is activated.  If it is 'D', then the autopilot is deactivated.
   event message_t *Receive.receive (message_t *bufPtr, void *payload, uint8_t len)
   {
     char directive = *(char*)payload;
+    dbg ("Autopilot", "directive: %c; length: %d\n", directive, len);
     switch (directive) {
     case 'A':
       if (! autopilotActive) {
-        call MuxControl.start ();
-        autopilotActive = TRUE;
-	//	call Timer.startPeriodic (IMU_PERIOD);
+        call MilliTimer.startPeriodic (IMU_PERIOD);
+	call MuxControl.start ();
+	autopilotActive = TRUE;
+	dbg ("Autopilot", "Autopilot activated\n");
       }
       break;
     case 'D':
       if (autopilotActive) {
-	//	call Timer.stop ();
-        call MuxControl.stop ();
+	call MuxControl.stop ();
+        call MilliTimer.stop ();
         autopilotActive = FALSE;
-	//	call Leds.set (0);
+        dbg ("Autopilot", "Autopilot deactivated\n");
       }
       break;
     default:
-    }
+      dbg ("Autopilot", "Junk directive: &c\n", directive);
+      }
     return bufPtr;
   }
+
+  event void AMSend.sendDone (message_t *bufPtr, error_t error) { }
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {
@@ -111,15 +111,20 @@ implementation {
 
   event void AMControl.stopDone (error_t err) { }
 
-  DoubleVector3 getIMUData ()
+  #define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); if (data | (1 << 14)) return; LAandAV.prev = data; } while (0)
+  void updateData ()
   {
 
+    static int tick = 0;
     static DoubleVector3 LAandAV;
     uint16_t data;
+    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection;
+    DoubleVector3 positionAndOrientation;
+    float yawCorrection;
+
+    tick++;
 
     call IMU.readRegister(XACCL_OUT);
-
-#define CHECKDATA(prev, reg) do { data = call IMU.readRegister (reg); LAandAV.prev = ((float) ((int16_t) (data << 2))) / 4; } while (0)
 
     CHECKDATA (a.x, YACCL_OUT);
     CHECKDATA (a.y, ZACCL_OUT);
@@ -128,62 +133,18 @@ implementation {
     CHECKDATA (b.roll , ZGYRO_OUT);
     CHECKDATA (b.yaw  , ZGYRO_OUT);
 
-    return LAandAV;
-
-  }
-
-#define pi 3.141592653589793238
-
-  event void Timer.fired ()
-  {
-
-    static uint8_t tick = 0;
-    Vector3 position, orientation, absoluteLinearCorrection, linearCorrection, errorPosition;
-    DoubleVector3 LAandAV, positionAndOrientation;
-    float yawCorrection;
-
-    float accl;
-
-    tick++;
-
-    LAandAV = getIMUData ();
-
-    accl = LAandAV.a.y;
-
-    if      (accl >=  200)
-      call Leds.set (1); // 001
-    else if (accl <= -200)
-      call Leds.set (4); // 100
-    else
-      call Leds.set (2); // 010
-
-    if (autopilotActive) {
-
-      call Motors.setTopRotorPower    (accl / 1500 + .5);
-      call Motors.setBottomRotorPower (accl / 1500 + .5);
-
-      call Motors.setPitchPower ( LAandAV.a.x            / 1000 + .5);
-      call Motors.setRollPower  ((LAandAV.a.z - GRAVITY) / 1000 + .5);
-
-    }
-
-    else {
-
-      call Motors.setTopRotorPower    (.15 + .85 * (.5 + .5 * cos (2 * pi * ((float) tick) / 100 )));
-      call Motors.setBottomRotorPower (.15 + .85 * (.5 + .5 * cos (2 * pi * ((float) tick) / 200)));
-      call Motors.setPitchPower       (             .5 + .5 * cos (2 * pi * ((float) tick) / 100) );
-      call Motors.setRollPower        (             .5 + .5 * cos (2 * pi * ((float) tick) / 50 ) );
-
-    }
-
-      /*    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD_S, LAandAV.a, scaleV3 (GYRO_SCALE * pi / 180, LAandAV.b));
+    positionAndOrientation = call DeadReckoning.updateReckoning (IMU_PERIOD, LAandAV.a, LAandAV.b);
     position = positionAndOrientation.a; orientation = positionAndOrientation.b;
-    errorPosition = addV3 (targetPosition, scaleV3 (-1, position));
-    absoluteLinearCorrection = V3 (call XPID.updateError (IMU_PERIOD_S, errorPosition.x), call YPID.updateError (IMU_PERIOD_S, errorPosition.y), call ZPID.updateError (IMU_PERIOD_S, errorPosition.z));
-    yawCorrection = call    YawPID.updateError (IMU_PERIOD_S, targetYaw - orientation.yaw);
+    dbg ("Autopilot", "Position: %f, %f, %f\n", position.x, position.y, position.z);
+    dbg ("Autopilot", "Orientation: %f, %f, %f\n", orientation.roll, orientation.pitch, orientation.yaw);
+    yawCorrection            = call    YawPID.updateError (IMU_PERIOD, targetYaw - orientation.yaw);
+    absoluteLinearCorrection = call LinearPID.updateError (IMU_PERIOD, addV3 (targetPosition, scaleV3 (-1, position)));
     linearCorrection = absoluteToRelativeV3 (orientation, absoluteLinearCorrection);
+    dbg ("Autopilot",               "Yaw correction required: %f\n", yawCorrection);
+    dbg ("Autopilot", "Linear correction required (absolute): %f, %f, %f\n", absoluteLinearCorrection.x, absoluteLinearCorrection.y, absoluteLinearCorrection.z);
+    dbg ("Autopilot", "Linear correction required (relative): %f, %f, %f\n", linearCorrection.x, linearCorrection.y, linearCorrection.z);
 
-    if (autopilotActive && tick % MOTOR_PERIOD == 0) {
+    if (tick % MOTOR_PERIOD == 0) {
       // T + B = z
       // T - B = yaw
       // -----------
@@ -192,7 +153,13 @@ implementation {
       call Motors.setTopRotorPower    (linearCorrection.z + yawCorrection);
       call Motors.setBottomRotorPower (linearCorrection.z - yawCorrection);
       call Motors.setPitchPower       (linearCorrection.y                );
-      call Motors.setRollPower        (linearCorrection.x                ); */
+      call Motors.setRollPower        (linearCorrection.x                );
+    }
+
+  }
+
+  event void MilliTimer.fired () {
+    updateData ();
   }
 
 }

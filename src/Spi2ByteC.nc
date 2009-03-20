@@ -1,5 +1,3 @@
-#include "util.h"
-
 generic module Spi2ByteC (uint16_t period)
 {
   provides {
@@ -35,10 +33,6 @@ implementation
   {
     call BusyWait.wait (period / 2);
   }
-  
-  inline void delay2 () {
-    call BusyWait.wait (max (1, period / 2 - 10));
-  }
 
   // Code from http://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus#Example_of_bit-banging_the_SPI_Master_protocol
   async command uint16_t Spi2Byte.write (uint16_t x)
@@ -60,7 +54,7 @@ implementation
       x <<= 1;
 
       call SCLK.clr ();
-      delay2 ();  //could call delay2 here?
+      delay ();
 
       x |= call MISO.get ();
 

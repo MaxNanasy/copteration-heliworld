@@ -12,7 +12,6 @@ uses {
   interface GeneralIO as LeftSwitch    ;
   interface GeneralIO as RightSwitch   ;
   interface Timer <TMilli>;
-  interface Leds;
  }
 }
 
@@ -53,15 +52,13 @@ implementation{
 
     static bool activateFallback = TRUE, activeSwitchPressed = FALSE;
 
-    if      (! call ActivateSwitch.get ()) {
-      call Leds.set (1);
+    if      (call ActivateSwitch.get ()) {
       activeSwitchPressed = TRUE;
       send (activateFallback ? ACTIVATE : DEACTIVATE);
     }
-    else if (! call LeftSwitch    .get ()) { call Leds.set (2); send (LEFT ); }
-    else if (! call RightSwitch   .get ()) { call Leds.set (4); send (RIGHT); }
+    else if (call LeftSwitch    .get ()) send (LEFT );
+    else if (call RightSwitch   .get ()) send (RIGHT);
     else {
-      call Leds.set (7);
       send (STABILIZE);
       if (activeSwitchPressed) {
         activeSwitchPressed = FALSE;
