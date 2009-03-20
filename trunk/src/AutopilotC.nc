@@ -22,15 +22,10 @@ module AutopilotC {
     interface PID <float> as ZPID  ;
     interface PID <float> as YawPID;
     interface SplitControl as AMControl;
-    interface AMSend;
-    interface Packet;
     interface DeadReckoning;
-    interface StdControl as MuxControl;
     interface Init as MuxInit;
-    interface GeneralIO as MuxSelect;
+    interface StdControl as MuxControl;
     interface Leds;
-    interface BusyWait <TMicro, uint16_t>;
-    interface Spi2Byte;
   }
 }
 
@@ -57,11 +52,11 @@ implementation {
 
     call IMUControl.start ();
 
-    // Initialize the PIDs with weights of (1, 1, 1) and initial previous error and integral of zero.    
-    call XPID  .initialize (1, 1, 1, 0, 0);
-    call YPID  .initialize (1, 1, 1, 0, 0);
-    call ZPID  .initialize (1, 1, 1, 0, 0);
-    call YawPID.initialize (1, 1, 1, 0, 0);
+    // Initialize the PIDs with initial previous error and integral of zero.    
+    call XPID  .initialize (0, 0);
+    call YPID  .initialize (0, 0);
+    call ZPID  .initialize (0, 0);
+    call YawPID.initialize (0, 0);
     call DeadReckoning.initialize (zeroV3, determineOrientation ());
 
     call AMControl.start ();
@@ -105,8 +100,6 @@ implementation {
     }
     return bufPtr;
   }
-
-  event void AMSend.sendDone (message_t *bufPtr, error_t error) { }
 
   event void AMControl.startDone (error_t err) {
     if (err == SUCCESS) {

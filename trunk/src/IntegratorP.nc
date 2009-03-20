@@ -1,4 +1,4 @@
-generic module IntegratorC (typedef a) {
+generic module IntegratorP (typedef a) {
   provides interface Integrator <a>;
   uses interface Additive <a>;
 }
