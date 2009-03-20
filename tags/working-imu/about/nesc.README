@@ -1,0 +1,2 @@
+When a module provides an interface, it must define each command, and it may signal   events.
+When a module     uses an interface, it must define each   event, and it may   call commands.
