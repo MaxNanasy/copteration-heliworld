@@ -6,53 +6,43 @@ configuration SimAppC {
 implementation {
 
   components SimC, MainC;
+  components LedsC;
   components RemoteC, AutopilotC;
   components SwitchC;
   components EnvironmentC;
   components NetworkC, ActiveMessageC;
   components new TimerMilliC () as RemoteTimerC, new TimerMilliC () as AutopilotTimerC, new TimerMilliC () as EnvironmentTimerC;
-  components Vector3C, floatC;
-  components new PIDC (Vector3) as LinearPIDC, new PIDC (float) as YawPIDC;
-  components DeadReckoningC;
-  components new IntegratorC (Vector3) as LinearPIDCIntegratorC, new IntegratorC (float) as YawPIDCIntegratorC;
-  components new IntegratorC (Vector3) as LAtoLVIntegratorC, new IntegratorC (Vector3) as LVtoLPIntegratorC, new IntegratorC (Vector3) as AVtoOIntegratorC;
-  components HPLT1pwmC as RotorPWM, HPLT3pwmC as TiltPWM;
-  components SwitchC as AutopilotMuxSelector; // Should be EnvironmentC eventually.
+  components new floatPIDC (1.0, 0.0, 0.0) as XPIDC, new floatPIDC (1.0, 0.0, 0.0) as YPIDC, new floatPIDC (1.0, 0.0, 0.0) as ZPIDC, new floatPIDC (1.0, 0.0, 0.0) as YawPIDC;
+  components new DeadReckoningC ();
 
   SimC.Boot -> MainC;
-  SimC.Environment -> EnvironmentC;
+  SimC.EnvironmentInit -> EnvironmentC.Init;
 
-  RemoteC.Boot -> SimC.Remote;
+  RemoteC.Boot -> SimC.RemoteBoot;
   RemoteC.Switch -> SwitchC;
   RemoteC.AMSend -> NetworkC;
   RemoteC.Packet -> NetworkC;
+  RemoteC.Timer -> RemoteTimerC;
+  RemoteC.Leds -> LedsC;
   RemoteC.AMControl -> ActiveMessageC;
 
-  AutopilotC.Boot -> SimC.Autopilot;
-  AutopilotC.LinearPID -> LinearPIDC;
+  AutopilotC.Boot -> SimC.AutopilotBoot;
+  AutopilotC.XPID -> XPIDC;
+  AutopilotC.YPID -> YPIDC;
+  AutopilotC.ZPID -> ZPIDC;
   AutopilotC.YawPID -> YawPIDC;
   AutopilotC.DeadReckoning -> DeadReckoningC;
+  AutopilotC.Leds -> LedsC;
   AutopilotC.Receive -> NetworkC;
-  AutopilotC.MilliTimer -> AutopilotTimerC;
+  AutopilotC.AMControl -> ActiveMessageC;
+  AutopilotC.Timer -> AutopilotTimerC;
   AutopilotC.IMU -> EnvironmentC;
+  AutopilotC.IMUControl -> EnvironmentC.IMUControl;
   AutopilotC.Motors -> EnvironmentC;
-  AutopilotC.MuxSelect -> EnvironmentC;
+  AutopilotC.MotorsInit -> EnvironmentC.MotorsInit;
+  AutopilotC.MuxInit -> EnvironmentC.MuxInit;
+  AutopilotC.MuxControl -> EnvironmentC.MuxControl;
 
   EnvironmentC.MilliTimer -> EnvironmentTimerC;
-
-  LinearPIDC.Additive -> Vector3C;
-  YawPIDC   .Additive -> floatC;
-  LinearPIDC.Integrator -> LinearPIDCIntegratorC;
-  YawPIDC   .Integrator -> YawPIDCIntegratorC;
-  LinearPIDCIntegratorC.Additive -> Vector3C;
-  YawPIDCIntegratorC   .Additive -> floatC;
-
-  DeadReckoningC.LAtoLV -> LAtoLVIntegratorC;
-  DeadReckoningC.LVtoLP -> LVtoLPIntegratorC;
-  DeadReckoningC.AVtoO  -> AVtoOIntegratorC ;
-
-  LAtoLVIntegratorC.Additive -> Vector3C;
-  LVtoLPIntegratorC.Additive -> Vector3C;
-  AVtoOIntegratorC .Additive -> Vector3C;
 
 }

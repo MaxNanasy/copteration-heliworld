@@ -6,7 +6,7 @@ implementation {
 
   components floatC, new IntegratorP (float);
 
-  Integrator = IntegratorC;
+  Integrator = IntegratorP;
 
   IntegratorP.Additive -> floatC;
 

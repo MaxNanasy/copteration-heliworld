@@ -1,4 +1,4 @@
-configuration DeadReckoningC {
+generic configuration DeadReckoningC () {
   provides interface DeadReckoning;
 }
 
