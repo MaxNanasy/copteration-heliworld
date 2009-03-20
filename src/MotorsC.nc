@@ -43,24 +43,24 @@ implementation {
     return x < 0 ? 0 : x > 1 ? 1 : x;
   }
 
-  command void Motors.setTopRotorPower (float power)
+  async command void Motors.setTopRotorPower (float power)
   {
     call RotorPWM.setApw (normalize (power) * ROTOR_MAX);
   }
 
-  command void Motors.setBottomRotorPower (float power)
+  async command void Motors.setBottomRotorPower (float power)
   {
     call RotorPWM.setBpw (normalize (power) * ROTOR_MAX);
   }
 
   // All the way to left  is 1.1 ms (min pulse)
   // All the way to right is 1.9 ms (max pulse)
-  command void Motors.setPitchPower (float power)
+  async command void Motors.setPitchPower (float power)
   {
     call TiltPWM.setApw((normalize (power) * .8 + 1.1)*TILT_MS);
   }
 
-  command void Motors.setRollPower (float power)
+  async command void Motors.setRollPower (float power)
   {
     call TiltPWM.setBpw((normalize (power) * .8 + 1.1)*TILT_MS);
   }

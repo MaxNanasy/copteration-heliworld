@@ -6,11 +6,8 @@ module EnvironmentC {
   provides {
     interface Motors;
     interface IMU;
-    interface StdControl as IMUControl;
     interface Init;
-    interface Init as MuxInit;
-    interface Init as MotorsInit;
-    interface StdControl as MuxControl;
+    interface GeneralIO as MuxSelect;
   }
   uses {
     interface Timer <TMilli> as MilliTimer;
@@ -49,22 +46,22 @@ implementation {
     return orientation;
   }
 
-  command void Motors.setTopRotorPower (float power)
+  async command void Motors.setTopRotorPower (float power)
   {
     topRotorPower = power;
   }
 
-  command void Motors.setBottomRotorPower (float power)
+  async command void Motors.setBottomRotorPower (float power)
   {
     bottomRotorPower = power;
   }
 
-  command void Motors.setPitchPower (float power)
+  async command void Motors.setPitchPower (float power)
   {
     pitchPower = power;
   }
 
-  command void Motors.setRollPower (float power)
+  async command void Motors.setRollPower (float power)
   {
     rollPower = power;
   }
@@ -113,16 +110,6 @@ implementation {
     return toReturn;
   }
 
-  command error_t IMUControl.start ()
-  {
-    return SUCCESS;
-  }
-
-  command error_t IMUControl.stop ()
-  {
-    return SUCCESS;
-  }
-
   event void MilliTimer.fired ()
   {
 
@@ -134,10 +121,13 @@ implementation {
 
   }
 
-  command error_t MuxInit   .init  () { return SUCCESS; }
-  command error_t MuxControl.start () { return SUCCESS; }
-  command error_t MuxControl.stop  () { return SUCCESS; }
-
-  command error_t MotorsInit.init  () { return SUCCESS; }
+  async command void MuxSelect.clr () { }
+  async command bool MuxSelect.get () { }
+  async command bool MuxSelect.isInput () { }
+  async command bool MuxSelect.isOutput () { }
+  async command void MuxSelect.makeInput () { }
+  async command void MuxSelect.makeOutput () { }
+  async command void MuxSelect.set () { }
+  async command void MuxSelect.toggle () { }
 
 }

@@ -1,42 +1,32 @@
 // This provides a simulation of the output of the switch on the remote.
 module SwitchC {
   provides {
-    interface GeneralIO;
+    interface GpioInterrupt;
   }
 }
 
 implementation {
 
-  uint8_t readsLeft; bool isInput = FALSE;
+  bool first = TRUE;
 
-  async command void GeneralIO.makeInput ()
+  // The first time the switch is enabled, it acts as if it has been pressed; thereafter, it acts as if it has not been pressed.
+  async command error_t GpioInterrupt.enableRisingEdge ()
   {
-    isInput = TRUE;
-    readsLeft = 64;
-  }
-
-  async command bool GeneralIO.get ()
-  {
-    if (isInput && readsLeft) {
-      readsLeft--;
-      return TRUE;
+    if (first) {
+      first = FALSE;
+      signal GpioInterrupt.fired ();
     }
-    return FALSE;
+    return SUCCESS;
   }
 
-  async command bool GeneralIO.isInput ()
+  async command error_t GpioInterrupt.enableFallingEdge ()
   {
-    return isInput;
+    return SUCCESS;
   }
 
-  async command bool GeneralIO.isOutput ()
+  async command error_t GpioInterrupt.disable ()
   {
-    return FALSE;
+    return SUCCESS;
   }
-
-  async command void GeneralIO.makeOutput () {}
-  async command void GeneralIO.set () {}
-  async command void GeneralIO.clr () {}
-  async command void GeneralIO.toggle () {}
 
 }
