@@ -1,0 +1,5 @@
+Usage information is in Main.hs .
+
+Dependency | Debian Package
+-----------|--------------------
+Parsec     | libghc6-parsec-dev
