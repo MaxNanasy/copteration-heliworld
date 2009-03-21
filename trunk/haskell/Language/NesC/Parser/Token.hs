@@ -2,8 +2,10 @@ module Language.NesC.Parser.Token
     ( braces
     , commaSep
     , dot
+    , float
     , identifier
     , integer
+    , naturalOrFloat
     , parens
     , reserved
     , reservedOp
@@ -19,7 +21,7 @@ nesCDef = emptyDef
           , commentEnd   = "*/"
           , commentLine  = "//"
           , reservedNames = ["as", "components", "configuration", "implementation", "new"]
-          , reservedOpNames = ["->", "<-"]
+          , reservedOpNames = ["->", "<-", "-"]
           }
 
 sharpCommentDef = emptyDef
@@ -27,14 +29,16 @@ sharpCommentDef = emptyDef
 
 nesC = T.makeTokenParser nesCDef
 
-braces     = T.braces     nesC
-commaSep   = T.commaSep   nesC
-dot        = T.dot        nesC
-identifier = T.identifier nesC
-integer    = T.integer    nesC
-parens     = T.parens      nesC
-reserved   = T.reserved   nesC
-reservedOp = T.reservedOp nesC
-semi       = T.semi       nesC
+braces         = T.braces         nesC
+commaSep       = T.commaSep       nesC
+dot            = T.dot            nesC
+float          = T.float          nesC
+identifier     = T.identifier     nesC
+integer        = T.integer        nesC
+naturalOrFloat = T.naturalOrFloat nesC
+parens         = T.parens         nesC
+reserved       = T.reserved       nesC
+reservedOp     = T.reservedOp     nesC
+semi           = T.semi           nesC
 
 sharpComments = T.whiteSpace $ T.makeTokenParser sharpCommentDef

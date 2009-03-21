@@ -51,7 +51,10 @@ componentImport = liftM (flip CI Nothing) identifier
                     return $ CI name $ Just arguments
 
 expression :: NesCParser String
-expression = identifier <|> liftM show integer
+expression = parens expression
+             <|> identifier
+             <|> liftM (either show show) naturalOrFloat
+             <|> (reservedOp "-" >> liftM ('-' :) expression)
 
 wiring :: NesCParser Wiring
 wiring = do
