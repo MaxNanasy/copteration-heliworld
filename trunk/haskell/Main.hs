@@ -10,43 +10,29 @@ import Text.ParserCombinators.Parsec
 import System.IO
 import System.Environment
 import System.Console.GetOpt
+import System.Console.ParseArgs
 
 import Control.Monad
 
 main :: IO ()
 main = do
-  name <- getProgName
-  options@(opts, _, _) <- liftM (getOpt Permute possibleOptions) getArgs
-  let (toPrint, proceed) = handleOptions name options
-  maybe (return ()) putStr toPrint
-  when proceed $ do
-         hSetBuffering stdin LineBuffering
-         liftM (parse configuration "stdin") getContents >>=
-             either
-             (hPrint stderr)
-             (putStr . graphConfiguration (elem Ports opts))
+  args <- parseArgsIO ArgsComplete possibleArgs
+  if (gotArg args Help)
+    then putStrLn $ usage args
+    else do hSetBuffering stdin LineBuffering
+            liftM (parse configuration "stdin") getContents >>= either
+                      (hPrint stderr)
+                      (putStr . graphConfiguration (gotArg args Ports))
+
+data Option = Help | Ports deriving (Eq, Ord, Show)
+
+possibleArgs :: [Arg Option]
+possibleArgs = [ Arg { argIndex = Help , argName = Just "help" , argAbbr = Just 'h', argData = Nothing, argDesc = "usage information" }
+               , Arg { argIndex = Ports, argName = Just "ports", argAbbr = Just 'p', argData = Nothing, argDesc = "display ports"     }
+               ]
+
+usage :: Ord a => Args a -> String
+usage args = argsUsage args ++ description
 
 description :: String
 description = "Treats stdin as a NesC configuration file and outputs to stdout a directed graph in DOT format of its wirings.\n"
-
-data Option = Help | Ports deriving (Show, Eq)
-
-possibleOptions :: [OptDescr Option]
-possibleOptions = [ Option "h" ["help" ] (NoArg Help ) "usage information"
-          , Option "p" ["ports"] (NoArg Ports) "display ports"
-          ]
-
-usage :: String -> String
-usage name = usageInfo ("Usage: " ++ name ++ " [OPTION]...\n" ++ description) possibleOptions
-
-handleOptions :: String -> ([Option], [String], [String]) -> (Maybe String, Bool)
-handleOptions _name ([]           , []   , []          ) =
-    (Nothing                                                                          , True )
-handleOptions  name (options@(_:_), []   , []          ) =
-    if elem Help options then
-         (Just $ usage name                                                           , False)
-    else (Nothing                                                                     , True )
-handleOptions  name (_            , (_:_), []          ) =
-    (Just $ "Error: No arguments expected.\n\n" ++ usage name                         , False)
-handleOptions  name (_            , _    , errors@(_:_)) =
-    (Just $ "Error:\n\n" ++ concatMap ((name ++ ": ") ++) errors ++ "\n" ++ usage name, False)

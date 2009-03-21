@@ -2,7 +2,7 @@ Name:		graph-configuration
 Version:	0.0
 License:	GPL
 Author:		Max Nanasy
-Build-Depends:	base, parsec
+Build-Depends:	base, parsec, parseargs
 Build-Type:	Simple
 
 Executable:	graph-configuration

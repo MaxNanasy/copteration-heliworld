@@ -7,7 +7,3 @@ To install, run:
 For help with installing, run ./Setup.hs help
 
 To run without installing, run ./Main.hs
-
-Dependency | Debian Package
------------|--------------------
-Parsec     | libghc6-parsec-dev
