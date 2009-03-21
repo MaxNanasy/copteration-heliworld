@@ -3,6 +3,7 @@ Version:	0.0
 License:	GPL
 Author:		Max Nanasy
 Build-Depends:	base, parsec
+Build-Type:	Simple
 
 Executable:	graph-configuration
 Main-Is:	Main.hs

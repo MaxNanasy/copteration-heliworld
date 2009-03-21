@@ -19,8 +19,9 @@ main = do
   options@(opts, _, _) <- liftM (getOpt Permute possibleOptions) getArgs
   let (toPrint, proceed) = handleOptions name options
   maybe (return ()) putStr toPrint
-  when proceed $
-       liftM (parse configuration "stdin") getContents >>=
+  when proceed $ do
+         hSetBuffering stdin LineBuffering
+         liftM (parse configuration "stdin") getContents >>=
              either
              (hPrint stderr)
              (putStr . graphConfiguration (elem Ports opts))

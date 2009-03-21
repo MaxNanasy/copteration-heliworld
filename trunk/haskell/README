@@ -4,7 +4,7 @@ To install, run:
  ./Setup.hs build
  ./Setup.hs install
 
-For help with installing, run ./Setup.hs --help
+For help with installing, run ./Setup.hs help
 
 To run without installing, run ./Main.hs
 
