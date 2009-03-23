@@ -3,28 +3,36 @@ To get the source for tinyos-2.x, run:
   cvs -z3 -d:pserver:anonymous@tinyos.cvs.sourceforge.net:/cvsroot/tinyos co -P tinyos-2.x
 
 
+To do any of the following, you must have ncc, TinyOS, and all other dependencies satisfied.  You must also have all necessary global variables set correctly.
+
+
 SIMULATION:
 
-To simulate the project, build it in the src folder using the command:
+To simulate the project, build it in the src/sim folder using the command:
 
   make micaz sim
 
-and then execute run.py in the src folder.  You must have ncc, TOSSIM, and all dependencies
-satisfied.  You must also have all necessary global variables set correctly.
+and then execute run.py in the src folder with the command:
+
+  ./run.py
+
+The output of the program will be in various files in /tmp with the extension "log".
 
 
 REAL DEAL:
 
-To build the actual project, first build in the src folder the remote using the command:
+To build the actual project, first build in the src/main folder the remote using the command:
 
-  make -f Makefile.RemoteAppC micaz
+  make -f remote.mk micaz
 
 and load the resultant program on the mote that is to remain on the ground.  Then build the autopilot using the command:
 
-  make -f Makefile.AutopilotAppC micaz
+  make -f Makefile micaz
 
 and load the resultant program on the mote that is to be attached to the helicopter.  To load a program onto a mote, make it using, for instance, one of the above two commands, then, with the mote plugged into the mote programmer and the programmer plugged into a USB port, use the command:
 
   make micaz reinstall mib520,/dev/ttyUSBn
 
-in which /dev/ttyUSBn should be replaced with the USB port the programmer is plugged into, such as /dev/ttyUSB0.  Make sure the green and red lights are lit on the programmer before this command; hold the programmer and mote steady while it loads.
+in which /dev/ttyUSBn should be replaced with the USB port the programmer is plugged into, such as /dev/ttyUSB0.  Make sure the big green and red lights are lit on the programmer before this command; hold the programmer and mote steady while it loads.
+
+The Fallback project can be built in src/fallback with the same commands.
