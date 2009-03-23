@@ -1,2 +1,2 @@
-COMPONENT=RemoteAppC
 include $(MAKERULES)
+CFLAGS=-I..

@@ -1,2 +1,2 @@
 COMPONENT=AutopilotAppC
-include $(MAKERULES)
+include ../common.mk

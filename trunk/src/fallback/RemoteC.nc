@@ -2,7 +2,7 @@
 
 #define PERIOD 1
 
-module FallbackRemoteC {
+module RemoteC {
 uses {
   interface Boot;
   interface AMSend;

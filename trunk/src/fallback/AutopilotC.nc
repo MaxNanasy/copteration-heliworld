@@ -10,7 +10,7 @@
 #define STABLE_PITCH_POWER 0.5
 #define STABLE_ROLL_POWER 0.5
 
-module FallbackC {
+module AutopilotC {
   uses {
     interface Boot;
     interface Receive;

@@ -1,8 +1,8 @@
-configuration FallbackAppC { }
+configuration AutopilotAppC { }
 
 implementation {
 
-  components FallbackC, MainC;
+  components AutopilotC, MainC;
   components new AMReceiverC (0), ActiveMessageC;
   components MotorsC;
   components LedsC;
@@ -12,14 +12,14 @@ implementation {
   components MuxC;
   
   //Begin wiring
-  FallbackC.Boot -> MainC;
-  FallbackC.Receive -> AMReceiverC;
-  FallbackC.Motors -> MotorsC;
-  FallbackC.AMControl -> ActiveMessageC;
-  FallbackC.Leds -> LedsC;
-  FallbackC.MotorsInit -> MotorsC.Init;
-  FallbackC.MuxInit    -> MuxC;
-  FallbackC.MuxControl -> MuxC;
+  AutopilotC.Boot -> MainC;
+  AutopilotC.Receive -> AMReceiverC;
+  AutopilotC.Motors -> MotorsC;
+  AutopilotC.AMControl -> ActiveMessageC;
+  AutopilotC.Leds -> LedsC;
+  AutopilotC.MotorsInit -> MotorsC.Init;
+  AutopilotC.MuxInit    -> MuxC;
+  AutopilotC.MuxControl -> MuxC;
   
   MotorsC.RotorPWM -> HPLT1pwmC;
   MotorsC.TiltPWM  -> HPLT3pwmC;
