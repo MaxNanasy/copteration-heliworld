@@ -36,3 +36,10 @@ and load the resultant program on the mote that is to be attached to the helicop
 in which /dev/ttyUSBn should be replaced with the USB port the programmer is plugged into, such as /dev/ttyUSB0.  Make sure the big green and red lights are lit on the programmer before this command; hold the programmer and mote steady while it loads.
 
 The Fallback project can be built in src/fallback with the same commands.
+
+
+DOCUMENTATION:
+
+To generate documentation for a project, in its directory use the command:
+
+  make micaz docs
