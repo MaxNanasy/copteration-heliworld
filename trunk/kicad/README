@@ -1,0 +1,1 @@
+The files, representing schematics, in this directory can be manipulated with Kicad.  For instance, opening autopilot/autopilot.pro in Kicad will allow one to manipulate the schematic of the autopilot board.

@@ -1,4 +1,4 @@
-update=25/3/2009-06:57:50
+update=26/3/2009-04:25:40
 last_client=eeschema
 [general]
 version=1
@@ -39,7 +39,7 @@ UseNetN=0
 LabSize=60
 [eeschema/libraries]
 LibName1=power
-LibName2=/home/max-nanasy/src/copteration-heliworld/trunk/kicad/autopilot
+LibName2=/home/max-nanasy/src/copteration-heliworld/trunk/kicad/lib/autopilot
 LibName3=device
 LibName4=conn
 LibName5=linear

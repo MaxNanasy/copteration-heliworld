@@ -1,5 +1,5 @@
 EESchema Schematic File Version 2
-LIBS:power,/home/max-nanasy/src/copteration-heliworld/trunk/kicad/autopilot,device,conn,linear,regul,74xx,cmos4000,adc-dac,memory,xilinx,special,microcontrollers,dsp,microchip,analog_switches,motorola,texas,intel,audio,interface,digital-audio,philips,display,cypress,siliconi,contrib,valves,./autopilot.cache
+LIBS:power,/home/max-nanasy/src/copteration-heliworld/trunk/kicad/lib/autopilot,device,conn,linear,regul,74xx,cmos4000,adc-dac,memory,xilinx,special,microcontrollers,dsp,microchip,analog_switches,motorola,texas,intel,audio,interface,digital-audio,philips,display,cypress,siliconi,contrib,valves,./autopilot.cache
 EELAYER 24  0
 EELAYER END
 $Descr A4 11700 8267
@@ -13,27 +13,7 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-Kmarq B 3950 3450 "Warning Pin passive Unconnected" F=1
-Kmarq B 1350 1400 "Warning Pin input Unconnected" F=1
-Kmarq B 1350 1600 "Warning Pin input Unconnected" F=1
-Kmarq B 3050 1200 "Warning Pin input Unconnected" F=1
-Kmarq B 3050 1400 "Warning Pin input Unconnected" F=1
-Kmarq B 3050 2000 "Warning Pin power_in Unconnected" F=1
-Kmarq B 3050 2200 "Warning Pin power_in Unconnected" F=1
-Kmarq B 1100 4850 "Warning Pin output Unconnected" F=1
-Kmarq B 1100 5050 "Warning Pin input Unconnected" F=1
-Kmarq B 1100 5250 "Warning Pin input Unconnected" F=1
-Kmarq B 1100 5450 "Warning Pin power_in Unconnected" F=1
-Kmarq B 1100 5650 "Warning Pin input Unconnected" F=1
-Kmarq B 1100 5850 "Warning Pin input Unconnected" F=1
-Kmarq B 1100 6050 "Warning Pin output Unconnected" F=1
-Kmarq B 2300 4850 "Warning Pin output Unconnected" F=1
-Kmarq B 2300 5050 "Warning Pin input Unconnected" F=1
-Kmarq B 2300 5250 "Warning Pin input Unconnected" F=1
-Kmarq B 2300 5450 "Warning Pin power_in Unconnected" F=1
-Kmarq B 2300 5650 "Warning Pin input Unconnected" F=1
-Kmarq B 2300 5850 "Warning Pin input Unconnected" F=1
-Kmarq B 2300 6050 "Warning Pin output Unconnected" F=1
+NoConn ~ 1350 1000
 NoConn ~ 1350 2800
 NoConn ~ 1350 2200
 NoConn ~ 1350 2000
@@ -43,7 +23,6 @@ NoConn ~ 3050 1800
 NoConn ~ 3050 3000
 NoConn ~ 3050 2400
 NoConn ~ 3050 3200
-NoConn ~ 1350 1000
 NoConn ~ 3050 1000
 NoConn ~ 3050 2800
 Wire Wire Line
@@ -56,7 +35,6 @@ Wire Wire Line
 	4050 4150 4450 4150
 Wire Wire Line
 	4450 4150 4450 3450
-NoConn ~ 1550 1000
 NoConn ~ 3050 2600
 NoConn ~ 1350 3200
 NoConn ~ 1350 3000
